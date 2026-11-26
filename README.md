@@ -6,7 +6,9 @@ Fais sauter les caisses, ramasse les bonus, piège tes adversaires et sois le de
 
 ## Jouer
 
-Ouvre `index.html` dans un navigateur (Chrome, Safari, Firefox). Aucune installation n'est nécessaire.
+En ligne : https://yankamkevin.github.io/kevblast/ (publié automatiquement à chaque fusion dans `main`).
+
+Hors ligne : `npm start`, puis http://localhost:8000. Le jeu est découpé en modules JavaScript, que les navigateurs refusent d'ouvrir directement en `file://`.
 
 - Jusqu'à 2 joueurs sur le même clavier, plus 0 à 3 bots (Tranquille, Malin, Infernal)
 - Joueur 1 : ZQSD (ou WASD) pour bouger, Espace pour poser un pétard
@@ -42,14 +44,38 @@ Place du Marché, Jardin des Lanternes, Quai des Fusées, Nuit des Lanternes (da
 
 ## Technique
 
-Un seul fichier `index.html` : HTML, CSS et JavaScript, dessin sur canvas, sons générés avec la Web Audio API. Aucune image ni dépendance externe (à part les polices Google Fonts).
+HTML, CSS et JavaScript sans dépendance ni étape de construction : dessin sur canvas, sons générés avec la Web Audio API. Le code est typé (JSDoc vérifié par TypeScript en mode strict) et découpé par rôle :
+
+| Fichier | Rôle |
+|---|---|
+| `src/config.js` | Données : héros, arènes, bonus, plafonds, niveaux des bots, numéro de version |
+| `src/state.js` | État de la partie et requêtes sur la grille |
+| `src/rules.js` | Règles : arène, pétards, flammes, bonus, malédictions, Finale, manches (sans DOM) |
+| `src/ai.js` | Bots : carte du danger, recherche de chemin, choix de la cible (sans DOM) |
+| `src/rng.js` | Hasard reproductible (même graine, même partie) |
+| `src/save.js` | Sauvegarde versionnée |
+| `src/render.js` | Dessin de l'arène |
+| `src/input.js` | Clavier, manettes, commandes tactiles |
+| `src/ui.js` | Menu, barre des joueurs, écrans de manche, de victoire et de pause |
+| `src/audio.js` | Sons et musique |
+| `src/main.js` | Boucle de jeu |
+
+## Sauvegarde
+
+Les réglages (joueurs, héros, bots, manches), la musique et le palmarès (parties jouées, titres par héros) sont gardés dans le navigateur (`localStorage`, clé `kevblast.sauvegarde`). Le format est versionné : toute évolution ajoute une étape à `migrate()` dans `src/save.js`. Une sauvegarde abîmée ou venant d'une version plus récente n'est jamais écrasée en silence : elle est mise de côté sous `kevblast.sauvegarde.abimee` et le jeu repart des réglages par défaut. Si le stockage est bloqué (navigation privée), le jeu fonctionne sans sauvegarder.
 
 ## Tests
-Un test de fumée joue le jeu tout seul sur ordinateur, iPhone SE et Pixel 7 couché (Chromium) : il échoue sur toute erreur console, un bouton hors de l'écran impossible à atteindre, une page qui déborde ou une chute d'images/s.
 
 ```bash
 npm install
 npx playwright install chromium
-npm test            # captures dans test-results/
+npm test              # tout ce que lance la CI
+npm run types         # vérification des types
+npm run unit          # règles, bots, sauvegarde, 11 parties complètes simulées (Node, ~5 s)
+npm run smoke         # fumée : ordinateur, iPhone SE, Pixel 7 couché (captures dans test-results/)
+npm run partie        # partie complète dans Chromium : menu -> champion -> sauvegarde -> rechargement
 ```
-Réglages propres au jeu : `tests/smoke.config.mjs`. La CI GitHub (`.github/workflows/tests.yml`) le lance sur chaque PR.
+
+- Les parties simulées jouent 4 bots jusqu'au champion à chaque niveau de difficulté et vérifient à chaque image qu'aucun joueur ni pétard n'entre dans un mur. Elles ont trouvé un vrai bug : la Finale ne refermait jamais la ligne du centre, et deux survivants là faisaient durer la manche sans fin.
+- `?graine=N` rejoue exactement la même partie ; `?turbo=N` l'accélère (utilisé par `npm run partie`).
+- La CI GitHub (`.github/workflows/tests.yml`) lance tout sur chaque PR ; `pages.yml` publie le jeu à chaque fusion dans `main`.

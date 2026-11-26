@@ -1,0 +1,56 @@
+// @ts-check
+/** Constantes et données du jeu : aucune logique ici. */
+
+export const VERSION = '1.1.0';
+
+export const COLS = 15, ROWS = 13, T = 48, FUSE = 2.5, FLAME = 0.55, ROUND = 120;
+
+/** @typedef {{name:string,col:string,dk:string,lt:string,pw:string,pd:string}} Hero */
+/** @type {Hero[]} */
+export const HEROES = [
+  { name: 'Kev', col: '#ff5a3c', dk: '#b8301a', lt: '#ffa58f', pw: 'Flamme vive', pd: 'commence avec 3 cases de portée' },
+  { name: 'Nova', col: '#14b8a6', dk: '#0a7469', lt: '#8ff0e3', pw: 'Turbo', pd: 'commence plus rapide' },
+  { name: 'Pip', col: '#ffc02e', dk: '#c4840a', lt: '#ffe596', pw: 'Double mèche', pd: 'commence avec 2 pétards' },
+  { name: 'Mox', col: '#8b6cff', dk: '#5638c9', lt: '#cdbfff', pw: 'Bulle', pd: 'un bouclier offert à chaque manche' },
+];
+
+/** Cases de départ des 4 joueurs. */
+export const SPAWN = [[1, 1], [13, 11], [13, 1], [1, 11]];
+
+export const ARENAS = ['Place du Marché', 'Jardin des Lanternes', 'Quai des Fusées', 'Nuit des Lanternes', 'Lac Gelé'];
+
+const TEAL = { hard: ['#3fb3a3', '#2a8c80', '#1b5e58'], border: ['#2a7a72', '#1a5853', '#0d3b3a'] };
+/** @typedef {{floor:string[],hard:string[],border:string[],night?:boolean,snow?:boolean}} Theme */
+/** @type {Theme[]} */
+export const THEMES = [
+  { floor: ['#f3d7a0', '#ecca8a', '#d9ae6a'], ...TEAL },
+  { floor: ['#cfe3b0', '#c2d99c', '#9fbf78'], ...TEAL },
+  { floor: ['#f0c9b4', '#e7b79e', '#cf9577'], ...TEAL },
+  { floor: ['#3a4f78', '#32466c', '#22305066'], hard: ['#5b7fc4', '#3f5f9c', '#26406e'], border: ['#33497a', '#24365c', '#141f38'], night: true },
+  { floor: ['#e8f6ff', '#d6edfb', '#a8cfe6'], hard: ['#b4e8fa', '#82c8e6', '#4f97b8'], border: ['#76b6d6', '#4f92b3', '#2f6886'], snow: true },
+];
+
+/** @type {Record<string,string>} */
+export const CURSES = { reverse: 'Touches inversées !', slow: 'Escargot !', dropper: 'Pétards en folie !', tiny: 'Mèche courte !' };
+/** @type {Record<string,string>} */
+export const POWTXT = { bomb: '+1 pétard', fire: '+1 portée', speed: 'Plus vite !', shield: 'Bouclier !', kick: 'Coup de pied !', max: 'Flamme max !' };
+
+/** Tirage d'un bonus quand une caisse saute : seuils cumulés (voir rules.drawPow). */
+export const POW_CHANCE = 0.34;
+export const POW_TABLE = [[0.25, 'bomb'], [0.5, 'fire'], [0.66, 'speed'], [0.74, 'shield'], [0.84, 'kick'], [0.95, 'curse'], [1, 'max']];
+
+/** Plafonds des améliorations. */
+export const CAPS = { bombs: 8, range: 9, speed: 6, speedStep: 0.45, baseSpeed: 3.4, turboSpeed: 3.95 };
+
+/** Surcharge : secondes de charge pour chaque niveau. */
+export const CHARGE = { half: 0.5, full: 1.1 };
+
+/** Bots : agressivité, temps de réaction, goût pour la Surcharge, chasse. */
+export const DIFF = [
+  { aggr: 0.3, delay: 0.28, charge: 0, hunt: 0.2 },
+  { aggr: 0.65, delay: 0.1, charge: 0.25, hunt: 0.6 },
+  { aggr: 0.95, delay: 0, charge: 0.55, hunt: 1 },
+];
+
+/** @type {Record<string,string>} */
+export const ICON = { bomb: '#3a3fb8', fire: '#ff5a3c', speed: '#14b8a6', shield: '#8b6cff', kick: '#1f9d55', curse: '#2b1640', max: '#ff8a1f' };
