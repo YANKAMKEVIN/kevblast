@@ -105,14 +105,15 @@ function drawPow(p){const px=(p.x+.5)*T,py=(p.y+.5)*T+Math.sin(now*4+p.x)*3,s=Ma
  */
 function drawSprite(c,p,im,flip,o){
  const hi=HEROES.indexOf(p.hero),px=p.x*T,feet=p.y*T+T*.36;
- let H=T*1.2,W=H*im.width/im.height;if(W>T*1.15){H*=T*1.15/W;W=T*1.15}
+ let H=T*1.4,W=H*im.width/im.height;if(W>T*1.2){H*=T*1.2/W;W=T*1.2}
  const s=Math.abs(Math.sin(p.walk||0)),ph=now*2.6+p.id*1.7;
  let sx=1,sy=1,tilt=0,hop=0,shake=0;
  if(o.moving){hop=s*T*.08;tilt=Math.sin(p.walk||0)*.085;sy=1-.07*(1-s);sx=1+.06*(1-s)}
  else{sy=1+.025*Math.sin(ph);sx=1-.02*Math.sin(ph)}
  if(p.charge>=0&&p.alive){const k=Math.min(p.charge,1.2);shake=Math.sin(now*70)*k*1.6;sx*=1+.06*k;sy*=1+.06*k}
  const hover=hi===3?T*.06+Math.sin(now*2+p.id)*T*.035:0;
- c.fillStyle='#0005';c.beginPath();c.ellipse(px,feet-T*.02,T*.28*(1-hover/T),T*.09*(1-hover/T),0,0,7);c.fill();
+ const k=1-hover/T;c.fillStyle='#0005';c.beginPath();c.ellipse(px,feet-T*.02,T*.3*k,T*.1*k,0,0,7);c.fill();
+ if(p.alive){c.strokeStyle=p.hero.col;c.globalAlpha*=.85;c.lineWidth=2.5;c.beginPath();c.ellipse(px,feet-T*.02,T*.34,T*.12,0,0,7);c.stroke();c.globalAlpha/=.85}
  if(hi===1&&o.moving&&p.dir){c.save();c.strokeStyle=p.hero.lt;c.lineCap='round';for(let i=0;i<3;i++){const a=.55-i*.15,l=T*(.22+.06*Math.sin(now*20+i*2));c.globalAlpha*=a;c.lineWidth=3-i*.6;const ox=-p.dir.x*T*(.32+i*.1),oy=-p.dir.y*T*(.3+i*.1)-T*(.25+i*.12);c.beginPath();c.moveTo(px+ox+(p.dir.y?(i-1)*T*.12:0),feet+oy);c.lineTo(px+ox-p.dir.x*l+(p.dir.y?(i-1)*T*.12:0),feet+oy-p.dir.y*l);c.stroke();c.globalAlpha/=a}c.restore()}
  c.save();c.translate(px+shake,feet-hop-hover-o.lift);c.rotate(tilt+o.rot);c.scale(sx*o.sc*flip,sy*o.sc);
  c.drawImage(im,-W/2,-H,W,H);c.restore();
