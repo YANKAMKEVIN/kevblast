@@ -3,6 +3,7 @@
 import { COLS, ROWS, T, FUSE, FLAME, HEROES, THEMES, ICON } from './config.js';
 import { S } from './state.js';
 import { clamp } from './rng.js';
+import { art, HERO_ART } from './art.js';
 
 /** @type {HTMLCanvasElement} */ let cv;
 /** @type {CanvasRenderingContext2D} */ let ctx;
@@ -24,12 +25,28 @@ export function initRender(canvas) {
 
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
 function buildFloor(){const f=document.createElement('canvas');f.width=COLS*T*DPR;f.height=ROWS*T*DPR;const c=/** @type {CanvasRenderingContext2D} */(f.getContext('2d'));c.scale(DPR,DPR);
- const pal=THEMES[S.arena].floor;
+ const pal=THEMES[S.arena].floor,sol=art('sol');
+ if(sol){paintFloor(c,sol,pal);S.floor=f;return}
  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){c.fillStyle=(x+y)%2?pal[0]:pal[1];c.fillRect(x*T,y*T,T,T);c.fillStyle=pal[2];c.globalAlpha=.35;c.fillRect(x*T,y*T+T-2,T,2);c.fillRect(x*T+T-2,y*T,2,T);c.globalAlpha=1;
   if(((x*7+y*13)%11)===0){c.fillStyle=pal[2];c.globalAlpha=.5;c.beginPath();c.arc(x*T+T*.3,y*T+T*.65,2,0,7);c.arc(x*T+T*.7,y*T+T*.3,1.5,0,7);c.fill();c.globalAlpha=1}}
  const cx=7*T+T/2,cy=6*T+T/2;c.strokeStyle=pal[2];c.globalAlpha=.4;c.lineWidth=3;c.setLineDash([6,8]);c.beginPath();c.arc(cx,cy,T*2.6,0,7);c.stroke();c.setLineDash([]);c.globalAlpha=1;
  S.floor=f}
+/** Sol peint : la texture Codex (un motif toutes les 2 cases), teintée aux couleurs de l'arène.
+ * @param {CanvasRenderingContext2D} c @param {HTMLImageElement} sol @param {string[]} pal */
+function paintFloor(c,sol,pal){const W=COLS*T,H=ROWS*T;
+ for(let y=0;y<H;y+=T*2)for(let x=0;x<W;x+=T*2)c.drawImage(sol,x,y,T*2,T*2);
+ c.globalCompositeOperation='multiply';c.fillStyle=pal[0];c.globalAlpha=.55;c.fillRect(0,0,W,H);
+ c.globalCompositeOperation='source-over';c.globalAlpha=.18;
+ for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if((x+y)%2){c.fillStyle=pal[2];c.fillRect(x*T,y*T,T,T)}
+ c.globalAlpha=1;const cx=7*T+T/2,cy=6*T+T/2;c.strokeStyle=pal[2];c.globalAlpha=.5;c.lineWidth=3;c.setLineDash([6,8]);c.beginPath();c.arc(cx,cy,T*2.6,0,7);c.stroke();c.setLineDash([]);c.globalAlpha=1}
+/** Bloc peint (mur ou caisse) avec son ombre ; faux si l'image n'est pas prête. */
+function paintBlock(name,px,py,tint){const im=art(name);if(!im)return false;
+ ctx.fillStyle='#0004';ctx.fillRect(px+4,py+T-3,T-2,5);
+ ctx.drawImage(im,px,py,T,T);
+ if(tint){ctx.globalCompositeOperation='multiply';ctx.fillStyle=tint;ctx.globalAlpha=.45;ctx.fillRect(px,py,T,T);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1}
+ return true}
 function drawHard(x,y){const px=x*T,py=y*T,border=x===0||y===0||x===COLS-1||y===ROWS-1;
+ if(paintBlock('mur',px,py,border?THEMES[S.arena].border[1]:null))return;
  ctx.fillStyle='#0003';ctx.fillRect(px+4,py+T-4,T,6);
  const hc=border?THEMES[S.arena].border:THEMES[S.arena].hard;ctx.fillStyle=hc[2];rr(ctx,px+1,py+T*.2,T-2,T*.8-1,6);ctx.fill();
  const g=ctx.createLinearGradient(0,py,0,py+T*.72);g.addColorStop(0,hc[0]);g.addColorStop(1,hc[1]);
@@ -38,6 +55,7 @@ function drawHard(x,y){const px=x*T,py=y*T,border=x===0||y===0||x===COLS-1||y===
  if(!border){ctx.strokeStyle='#ffffff22';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px+T*.3,py+T*.25);ctx.lineTo(px+T*.5,py+T*.45);ctx.lineTo(px+T*.7,py+T*.25);ctx.stroke()}
  else if((x+y)%3===0){ctx.fillStyle='#ffc63a';ctx.globalAlpha=(THEMES[S.arena].night?.8:.25)+.15*Math.sin(now*3+x+y);ctx.beginPath();ctx.arc(px+T/2,py+T*.36,5,0,7);ctx.fill();ctx.globalAlpha=1}}
 function drawSoft(x,y){const px=x*T,py=y*T;
+ if(paintBlock('caisse',px+1,py+1,null))return;
  ctx.fillStyle='#0003';ctx.fillRect(px+5,py+T-5,T-4,6);
  ctx.fillStyle='#b8341f';rr(ctx,px+3,py+T*.24,T-6,T*.72,6);ctx.fill();
  const g=ctx.createLinearGradient(0,py+3,0,py+T*.75);g.addColorStop(0,'#ff8a66');g.addColorStop(1,'#ff5a3c');ctx.fillStyle=g;rr(ctx,px+3,py+3,T-6,T*.7,7);ctx.fill();
@@ -64,6 +82,8 @@ function drawFlame(f){const px=f.x*T,py=f.y*T,a=clamp(f.t/FLAME,0,1),w=T*(.42+.3
 function drawPow(p){const px=(p.x+.5)*T,py=(p.y+.5)*T+Math.sin(now*4+p.x)*3,s=Math.min(1,p.t*4);
  ctx.save();ctx.translate(px,py);ctx.scale(s,s);
  ctx.fillStyle='#0003';ctx.beginPath();ctx.ellipse(0,T*.33,T*.25,T*.08,0,0,7);ctx.fill();
+ const ic=art('bonus_'+p.type);
+ if(ic){if(p.type==='curse')ctx.rotate(Math.sin(now*5)*.15);ctx.drawImage(ic,-T*.48,-T*.5,T*.96,T*.96);ctx.restore();return}
  ctx.fillStyle='#ffc63a';ctx.beginPath();ctx.arc(0,0,T*.34,0,7);ctx.fill();ctx.fillStyle='#c4840a';ctx.beginPath();ctx.arc(0,2,T*.28,0,7);ctx.fill();
  ctx.fillStyle=ICON[p.type];ctx.beginPath();ctx.arc(0,0,T*.27,0,7);ctx.fill();
  ctx.fillStyle='#fff';ctx.strokeStyle='#fff';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';
@@ -139,4 +159,4 @@ function bigText(t,s,col,dy=0){if(!t)return;ctx.save();ctx.translate(COLS*T/2,RO
  ctx.lineWidth=14;ctx.strokeStyle='#0c2427';ctx.strokeText(t,0,0);ctx.fillStyle='#b8341f';ctx.fillText(t,0,6);ctx.fillStyle=col;ctx.fillText(t,0,0);ctx.restore()}
 
 /** @param {HTMLCanvasElement} cnv @param {number} i @param {number} size */
-export function heroPortrait(cnv,i,size){const c=/** @type {CanvasRenderingContext2D} */(cnv.getContext('2d'));c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,cnv.width,cnv.height);c.scale(size/T,size/T);drawHero(c,/** @type {any} */({id:i,hero:HEROES[i],x:.5,y:.62,alive:true,walk:0,dir:{x:0,y:1},charge:-1,inv:0,shield:false,moving:false}),true)}
+export function heroPortrait(cnv,i,size){const c=/** @type {CanvasRenderingContext2D} */(cnv.getContext('2d'));c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,cnv.width,cnv.height);const im=art(HERO_ART[i]);if(im){c.drawImage(im,0,0,cnv.width,cnv.height);return}c.scale(size/T,size/T);drawHero(c,/** @type {any} */({id:i,hero:HEROES[i],x:.5,y:.62,alive:true,walk:0,dir:{x:0,y:1},charge:-1,inv:0,shield:false,moving:false}),true)}

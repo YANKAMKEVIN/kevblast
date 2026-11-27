@@ -5,6 +5,7 @@ import { seed } from './rng.js';
 import { update } from './rules.js';
 import { initRender, draw, setNow } from './render.js';
 import { initInput, pollInputs, ui } from './input.js';
+import { loadArt } from './art.js';
 import { initUi, showMenu, togglePause, toggleMusic, updateClock, buildHud, timing } from './ui.js';
 
 const params = new URLSearchParams(location.search);
@@ -41,6 +42,12 @@ function step(dt) {
 }
 
 showMenu();
+// Visuels peints : dès qu'ils sont là, le sol est refait et le menu reprend les portraits.
+loadArt().then(n => {
+  S.floor = null;
+  if (S.mode === 'demo') showMenu(); else if (S.cur) buildHud();
+  /** @type {any} */ (window).__kev.art = n;
+});
 if (document.fonts) document.fonts.ready.then(() => { S.floor = null; if (S.cur && S.mode !== 'demo') buildHud(); });
 /** Accès pour les tests de bout en bout. */
 Object.assign(window, { __kev: { S } });

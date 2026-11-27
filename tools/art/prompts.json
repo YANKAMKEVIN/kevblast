@@ -1,0 +1,29 @@
+{
+  "style": "Peinture numérique colorée et chaleureuse, façon illustration de jeu indé haut de gamme : formes rondes et lisibles, contours doux, lumière de lanternes de fête la nuit, palette corail, turquoise, jaune soleil et violet sur fond bleu nuit. Aucun texte, aucun logo, aucune signature, aucun filigrane.",
+  "fond_detourage": "Sujet seul, centré, entier, sur un fond uni magenta pur #FF00FF sans dégradé ni ombre portée sur le fond, pour être détouré ensuite.",
+  "images": [
+    {"fichier": "titre", "taille": "1920x1080", "detourer": false,
+     "prompt": "Affiche d'ouverture du jeu « festival des pétards » : une place de fête nocturne vue de trois quarts, guirlandes de lanternes, feux d'artifice qui éclatent dans le ciel, caisses de pétards en bois empilées. Au premier plan quatre petits héros ronds et joyeux, chacun avec une couleur dominante : Kev (corail #ff5a3c, flamme sur la tête), Nova (turquoise #14b8a6, lunettes de vitesse), Pip (jaune #ffc02e, deux mèches), Mox (violet #8b6cff, bulle de savon). Laisser le tiers central haut assez calme pour y poser le titre du jeu."},
+    {"fichier": "sol", "taille": "512x512", "detourer": false,
+     "prompt": "Texture de sol vue strictement de dessus, raccordable sur ses quatre bords (motif qui se répète sans couture) : pavés de place de fête, légèrement chauds, confettis discrets. Éclairage uniforme, pas d'ombre directionnelle, contraste faible pour ne pas gêner la lecture du jeu."},
+    {"fichier": "mur", "taille": "512x512", "detourer": false,
+     "prompt": "Bloc indestructible vu strictement de dessus qui remplit tout le carré : pilier de pierre peinte bleu nuit avec un liseré doré et une petite lanterne gravée au centre. Bords nets, lisible en tout petit (40 pixels)."},
+    {"fichier": "caisse", "taille": "512x512", "detourer": false,
+     "prompt": "Caisse de pétards en bois vue strictement de dessus qui remplit tout le carré : planches chaudes, cerclage métallique, étiquette rouge avec un symbole d'étincelle (pas de texte). Bords nets, lisible en tout petit (40 pixels)."},
+    {"fichier": "heros_kev", "taille": "1024x1024", "detourer": true,
+     "prompt": "Portrait buste du héros Kev : petite créature ronde et espiègle, corps corail #ff5a3c, ombres #b8301a, reflets #ffa58f, une flamme vive qui danse sur la tête, grand sourire."},
+    {"fichier": "heros_nova", "taille": "1024x1024", "detourer": true,
+     "prompt": "Portrait buste de l'héroïne Nova : petite créature ronde et vive, corps turquoise #14b8a6, ombres #0a7469, reflets #8ff0e3, lunettes de vitesse relevées sur le front, traînée de vent derrière elle."},
+    {"fichier": "heros_pip", "taille": "1024x1024", "detourer": true,
+     "prompt": "Portrait buste du héros Pip : petite créature ronde et malicieuse, corps jaune soleil #ffc02e, ombres #c4840a, reflets #ffe596, deux mèches allumées qui sortent de la tête comme des antennes."},
+    {"fichier": "heros_mox", "taille": "1024x1024", "detourer": true,
+     "prompt": "Portrait buste de l'héroïne Mox : petite créature ronde et calme, corps violet #8b6cff, ombres #5638c9, reflets #cdbfff, une grande bulle de savon irisée qui l'entoure à moitié."},
+    {"fichier": "bonus_bomb", "taille": "512x512", "detourer": true, "prompt": "Icône de bonus : un pétard rond noir et rouge avec mèche allumée et un petit « + » lumineux à côté (symbole, pas de texte)."},
+    {"fichier": "bonus_fire", "taille": "512x512", "detourer": true, "prompt": "Icône de bonus : une flamme orange vif qui s'étire vers la droite, comme une portée qui s'allonge."},
+    {"fichier": "bonus_speed", "taille": "512x512", "detourer": true, "prompt": "Icône de bonus : une chaussure de course turquoise avec des ailes et des traits de vitesse."},
+    {"fichier": "bonus_shield", "taille": "512x512", "detourer": true, "prompt": "Icône de bonus : un bouclier rond bleu ciel brillant, en forme de bulle."},
+    {"fichier": "bonus_kick", "taille": "512x512", "detourer": true, "prompt": "Icône de bonus : une botte jaune qui frappe, avec un petit impact en étoile."},
+    {"fichier": "bonus_curse", "taille": "512x512", "detourer": true, "prompt": "Icône de malus : un crâne violet rigolo et inquiétant entouré de fumée verte."},
+    {"fichier": "bonus_max", "taille": "512x512", "detourer": true, "prompt": "Icône de bonus rare : une flamme rose magenta-fuchsia intense avec une couronne dorée au-dessus (la flamme ne doit pas être du même magenta pur que le fond : tirer vers le rose #ff4fa3)."}
+  ]
+}
