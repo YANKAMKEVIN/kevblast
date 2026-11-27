@@ -78,4 +78,4 @@ npm run partie        # partie complète dans Chromium : menu -> champion -> sau
 
 - Les parties simulées jouent 4 bots jusqu'au champion à chaque niveau de difficulté et vérifient à chaque image qu'aucun joueur ni pétard n'entre dans un mur. Elles ont trouvé un vrai bug : la Finale ne refermait jamais la ligne du centre, et deux survivants là faisaient durer la manche sans fin.
 - `?graine=N` rejoue exactement la même partie ; `?turbo=N` l'accélère (utilisé par `npm run partie`).
-- La CI GitHub (`.github/workflows/tests.yml`) lance tout sur chaque PR ; `pages.yml` publie le jeu à chaque fusion dans `main`.
+- La CI GitHub (`.github/workflows/tests.yml`) lance tout sur chaque PR ; GitHub Pages publie directement la branche `main` (fichier `.nojekyll`).
