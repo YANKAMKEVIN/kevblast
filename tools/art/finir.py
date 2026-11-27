@@ -3,14 +3,18 @@
 Usage : python finir.py PROMPTS_JSON DOSSIER_BRUT DOSSIER_SORTIE [fichier ...]
 - recadre (centre, cover) puis redimensionne à la taille exacte demandée ;
 - si detourer : fond magenta #FF00FF -> transparent (tolérance + bord adouci + suppression du halo rose) ;
-- enregistre <fichier>.webp qualité 85.
+- enregistre <fichier>.webp qualité 85 ;
+- si decouper (fiche de modèle d'un héros) : sépare les vues posées côte à côte (colonnes
+  vides entre elles), recadre chacune au plus juste et enregistre heros_<id>_<vue>.webp,
+  hauteur SPRITE_H (le jeu les affiche à ~58 px, ~116 px sur écran Retina).
 """
 import json, sys
 from pathlib import Path
 import numpy as np
 from PIL import Image, ImageFilter
 
-TOL_DUR, TOL_DOUX = 45.0, 95.0  # distance RGB au magenta : <dur = transparent, >doux = opaque
+TOL_DUR, TOL_DOUX = 45.0, 95.0
+SPRITE_H = 192  # distance RGB au magenta : <dur = transparent, >doux = opaque
 
 def cover(img, w, h):
     sw, sh = img.size
@@ -43,6 +47,27 @@ def detourer(img):
     out = np.dstack([np.clip(a, 0, 255), alpha * 255]).astype(np.uint8)
     return Image.fromarray(out)
 
+def vues(img, n):
+    """Les n plus larges blocs de colonnes non vides, de gauche à droite."""
+    a = np.asarray(img)[..., 3] > 40
+    cols = a.sum(0) > 2
+    blocs, debut = [], None
+    for x, plein in enumerate(list(cols) + [False]):
+        if plein and debut is None: debut = x
+        if not plein and debut is not None: blocs.append((debut, x)); debut = None
+    # fusionne les blocs séparés par un trou étroit (un bras, une étincelle détachée)
+    fus = []
+    for b in blocs:
+        if fus and b[0] - fus[-1][1] < img.width * 0.02: fus[-1] = (fus[-1][0], b[1])
+        else: fus.append(b)
+    fus = sorted(sorted(fus, key=lambda b: b[1] - b[0], reverse=True)[:n])
+    if len(fus) != n: raise SystemExit(f"{n} vues attendues, {len(fus)} trouvées")
+    out = []
+    for x0, x1 in fus:
+        v = img.crop((x0, 0, x1, img.height)); bb = v.getbbox(); v = v.crop(bb)
+        out.append(v.resize((max(1, round(v.width * SPRITE_H / v.height)), SPRITE_H), Image.LANCZOS))
+    return out
+
 def main():
     js, brut, sortie, *noms = sys.argv[1:]
     d = json.load(open(js)); Path(sortie).mkdir(parents=True, exist_ok=True)
@@ -53,6 +78,13 @@ def main():
         w, h = map(int, im["taille"].split("x"))
         img = cover(Image.open(src).convert("RGB"), w, h)
         if im.get("detourer"): img = detourer(img)
+        if im.get("decouper"):
+            hid = im["fichier"].split("_", 1)[1]
+            for nom, v in zip(im["decouper"], vues(img, len(im["decouper"]))):
+                dst = Path(sortie) / f"heros_{hid}_{nom}.webp"
+                v.save(dst, "WEBP", quality=88, method=6)
+                print(f"{dst.name} {v.width}x{v.height} {dst.stat().st_size // 1024} Ko")
+            continue
         dst = Path(sortie) / f"{im['fichier']}.webp"
         img.save(dst, "WEBP", quality=85, method=6)
         print(f"{dst.name} {w}x{h} {dst.stat().st_size // 1024} Ko")

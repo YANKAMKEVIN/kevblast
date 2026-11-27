@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Kevblast : génère les images brutes avec le Codex de l'app ChatGPT.
+# Une image peut citer une référence ("reference", chemin relatif au JSON), jointe à la demande.
 # Usage : ./generer.sh PROMPTS_JSON OUT_DIR [fichier ...]   (sans fichier : toutes ; saute celles déjà présentes sauf FORCE=1)
 set -uo pipefail
 CODEX="${CODEX:-/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex}"
@@ -16,14 +17,20 @@ for ID in "${NOMS[@]}"; do
 import json, sys
 d = json.load(open(sys.argv[1])); im = next(i for i in d["images"] if i["fichier"] == sys.argv[2])
 w, h = im["taille"].split("x")
-fmt = "carré" if w == h else "paysage 16:9"
+from fractions import Fraction
+r = Fraction(int(w), int(h))
+fmt = "carré" if w == h else f"paysage {r.numerator}:{r.denominator}"
 print("Utilise ton outil de génération d'images pour produire UNE image. N'écris pas de code et ne lance aucune commande. Quand l'image est produite, réponds seulement : FAIT.\n")
+if im.get("reference"): print("L'image jointe est la référence de design des personnages : reprends fidèlement leurs formes, couleurs, accessoires et visages.\n")
 print(d["style"] + "\n")
+if im.get("heros"): print(d["style_heros"] + "\n")
 print(im["prompt"] + "\n")
 if im.get("detourer"): print(d["fond_detourage"] + "\n")
 print(f"Format : image {fmt}, destinée à être ramenée à {w}x{h} pixels. Aucun texte, aucune lettre, aucun chiffre.")
 PY
-  ( cd "$TRAVAIL" && "$CODEX" exec --skip-git-repo-check -s read-only --json - < prompt.txt > sortie.jsonl 2> err.txt )
+  REF="$(python3 -c 'import json,sys,os;d=json.load(open(sys.argv[1]));im=next(i for i in d["images"] if i["fichier"]==sys.argv[2]);r=im.get("reference");print(os.path.join(os.path.dirname(os.path.abspath(sys.argv[1])),r) if r else "")' "$JSON" "$ID")"
+  IMG=(); [[ -n "$REF" ]] && IMG=(--image "$REF")
+  ( cd "$TRAVAIL" && "$CODEX" exec ${IMG[@]+"${IMG[@]}"} --skip-git-repo-check -s read-only --json - < prompt.txt > sortie.jsonl 2> err.txt )
   cp "$TRAVAIL/sortie.jsonl" "$OUT/logs/$ID.jsonl"; cp "$TRAVAIL/err.txt" "$OUT/logs/$ID.err"
   SESSION="$(grep -o '"thread_id":"[^"]*"' "$TRAVAIL/sortie.jsonl" | head -1 | cut -d'"' -f4)"
   IMAGE="$(ls -t "$HOME/.codex/generated_images/$SESSION"/*.png 2>/dev/null | head -1 || true)"

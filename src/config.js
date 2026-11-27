@@ -1,17 +1,30 @@
 // @ts-check
 /** Constantes et données du jeu : aucune logique ici. */
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 
 export const COLS = 15, ROWS = 13, T = 48, FUSE = 2.5, FLAME = 0.55, ROUND = 120;
 
-/** @typedef {{name:string,col:string,dk:string,lt:string,pw:string,pd:string}} Hero */
+/**
+ * Les héros « Pétards Vivants » : des pièces d'artifice en carton peint, bras et jambes
+ * en caoutchouc. `kind` et `tag` les présentent au menu ; `win` et `ko` sont leurs
+ * répliques (victoire de manche, K.O.), choisies sans toucher au hasard de la partie.
+ * @typedef {{name:string,col:string,dk:string,lt:string,pw:string,pd:string,kind:string,tag:string,win:string[],ko:string[]}} Hero
+ */
 /** @type {Hero[]} */
 export const HEROES = [
-  { name: 'Kev', col: '#ff5a3c', dk: '#b8301a', lt: '#ffa58f', pw: 'Flamme vive', pd: 'commence avec 3 cases de portée' },
-  { name: 'Nova', col: '#14b8a6', dk: '#0a7469', lt: '#8ff0e3', pw: 'Turbo', pd: 'commence plus rapide' },
-  { name: 'Pip', col: '#ffc02e', dk: '#c4840a', lt: '#ffe596', pw: 'Double mèche', pd: 'commence avec 2 pétards' },
-  { name: 'Mox', col: '#8b6cff', dk: '#5638c9', lt: '#cdbfff', pw: 'Bulle', pd: 'un bouclier offert à chaque manche' },
+  { name: 'Kev', col: '#ff5a3c', dk: '#b8301a', lt: '#ffa58f', pw: 'Flamme vive', pd: 'commence avec 3 cases de portée',
+    kind: 'la bombe boxeuse', tag: 'Fanfaron au grand cœur, il fonce toujours en premier.',
+    win: ['Qui veut un autographe ?', 'Trop facile !', 'Encore un round ?'], ko: ['Même pas mal…', 'Revanche !', 'Ouille, ma mèche !'] },
+  { name: 'Nova', col: '#14b8a6', dk: '#0a7469', lt: '#8ff0e3', pw: 'Turbo', pd: 'commence plus rapide',
+    kind: 'la fusée pilote', tag: 'Toujours pressée, elle a déjà fini avant que tu commences.',
+    win: ['Décollage réussi !', 'Trop lents !', 'Record battu !'], ko: ['Crash au décollage…', 'J\'avais pas fini !', 'Panne de moteur !'] },
+  { name: 'Pip', col: '#ffc02e', dk: '#c4840a', lt: '#ffe596', pw: 'Double mèche', pd: 'commence avec 2 pétards',
+    kind: 'les pétards jumeaux', tag: 'Deux têtes, une ceinture, zéro accord. Sauf pour gagner.',
+    win: ['C\'est grâce à moi ! — Non, à moi !', 'On est les meilleurs !', 'Double victoire !'], ko: ['C\'est ta faute !', 'Non, la tienne !', 'Aïe aïe !'] },
+  { name: 'Mox', col: '#8b6cff', dk: '#5638c9', lt: '#cdbfff', pw: 'Bulle', pd: 'un bouclier offert à chaque manche',
+    kind: 'la boule fumigène', tag: 'Zen absolue. Elle flotte au-dessus de la mêlée, dans sa bulle.',
+    win: ['Respire… et gagne.', 'Tout est calme.', 'Paix et pétards.'], ko: ['Pfffiou…', 'Je reviens en fumée.', 'Inspire…'] },
 ];
 
 /** Cases de départ des 4 joueurs. */

@@ -5,14 +5,32 @@
  * procédural d'origine prend le relais.
  */
 
-export const ART_FILES = /** @type {const} */ ([
-  'titre', 'sol', 'mur', 'caisse',
-  'heros_kev', 'heros_nova', 'heros_pip', 'heros_mox',
-  'bonus_bomb', 'bonus_fire', 'bonus_speed', 'bonus_shield', 'bonus_kick', 'bonus_curse', 'bonus_max',
-]);
+/** Identifiants des héros dans les noms de fichiers, dans l'ordre de HEROES. */
+const HERO_IDS = ['kev', 'nova', 'pip', 'mox'];
 
-/** Portrait de chaque héros, dans l'ordre de HEROES. */
-export const HERO_ART = ['heros_kev', 'heros_nova', 'heros_pip', 'heros_mox'];
+/** Les trois vues de chaque héros dans l'arène (le profil gauche est le profil droit en miroir). */
+export const VIEWS = /** @type {const} */ (['face', 'dos', 'profil']);
+/** @typedef {typeof VIEWS[number]} View */
+
+/** Portrait de chaque héros (menu, barre des joueurs), dans l'ordre de HEROES. */
+export const HERO_ART = HERO_IDS.map(id => `heros_${id}`);
+/** Pose de victoire de chaque héros (écran du champion). */
+export const HERO_WIN = HERO_IDS.map(id => `victoire_${id}`);
+/** Sprites d'arène : HERO_SPRITES[héros][vue]. */
+export const HERO_SPRITES = HERO_IDS.map(id => Object.fromEntries(VIEWS.map(v => [v, `heros_${id}_${v}`])));
+
+/**
+ * Vue d'un héros selon sa direction : face, dos ou profil (miroir si vers la gauche).
+ * @param {{x:number,y:number}|undefined} d
+ * @returns {{view:View,flip:number}}
+ */
+export function heroView(d){const x=d?.x||0,y=d?.y||0;if(Math.abs(x)>Math.abs(y))return{view:'profil',flip:x<0?-1:1};return{view:y<0?'dos':'face',flip:1}}
+
+export const ART_FILES = [
+  'titre', 'sol', 'mur', 'caisse',
+  ...HERO_ART, ...HERO_WIN, ...HERO_SPRITES.flatMap(s => VIEWS.map(v => s[v])),
+  'bonus_bomb', 'bonus_fire', 'bonus_speed', 'bonus_shield', 'bonus_kick', 'bonus_curse', 'bonus_max',
+];
 
 /** @type {Map<string, HTMLImageElement>} */
 const loaded = new Map();

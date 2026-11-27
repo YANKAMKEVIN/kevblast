@@ -11,6 +11,13 @@ import { botUpdate } from './ai.js';
 
 const DV = /** @type {Record<string,number[]>} */ ({ u: [0, -1], d: [0, 1], l: [-1, 0], r: [1, 0] });
 
+/**
+ * Réplique d'un héros, choisie par un compteur (jamais par le hasard de la partie,
+ * pour qu'une graine rejoue toujours la même partie).
+ * @param {string[]} lines @param {number} n
+ */
+export function line(lines, n) { return lines[((n % lines.length) + lines.length) % lines.length]; }
+
 /** Niveau de Surcharge pour un temps de charge (0 normal, 1 portée +2, 2 flamme perçante).
  * @param {number} t */
 export function chargeLevel(t) { return t >= CHARGE.full ? 2 : t >= CHARGE.half ? 1 : 0; }
@@ -105,6 +112,7 @@ export function giveCurse(p,type){const ks=Object.keys(CURSES);type=type||ks[Mat
  p.curse={type,t:10};floatText(p.x,p.y-.6,CURSES[type],'#d9a8ff');hooks.hud()}
 export function kill(p){if(!p.alive)return;if(p.inv>0)return;
  if(p.shield){p.shield=false;p.inv=1.4;sfx.shield();for(let k=0;k<14;k++)part(p.x,p.y,'spark','#9ff');return}
+ floatText(p.x,p.y-1.1,line(p.hero.ko,S.round+p.id),p.hero.lt);
  p.alive=false;p.deadT=0;p.charge=-1;p.curse=null;sfx.die();
  if(S.mode==='play'&&S.players.filter(q=>q.alive).length<=1&&S.slow<=0){S.slow=1.5;S.focus={x:p.x,y:p.y};floatText(p.x,p.y-.8,'K.O. !','#ffc63a')}S.shake+=6;for(let k=0;k<30;k++)part(p.x,p.y,'confetti');for(let k=0;k<12;k++)part(p.x,p.y,'spark',p.hero.col);hooks.hud()}
 export function update(dt){
