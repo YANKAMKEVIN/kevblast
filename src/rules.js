@@ -1,7 +1,7 @@
 // @ts-check
 /** Règles de KEVBLAST : arène, pétards, flammes, bonus, malédictions, manches.
  * Aucune dépendance au DOM : testé sous Node par tests/unit/*.test.mjs. */
-import { COLS, ROWS, FUSE, FLAME, ROUND, HEROES, SPAWN, ARENAS, THEMES, CURSES, POWTXT, POW_CHANCE, POW_TABLE, CAPS, CHARGE } from './config.js';
+import { COLS, ROWS, FUSE, FLAME, ROUND, HEROES, SPAWN, ARENAS, CURSES, POWTXT, POW_CHANCE, POW_TABLE, CAPS, CHARGE } from './config.js';
 import { S, hooks, touch, key, cell, bombAt, powAt, flameAt, blocked } from './state.js';
 import { rnd } from './rng.js';
 import { sfx } from './audio.js';
@@ -119,13 +119,12 @@ export function update(dt){
  if(S.banner){S.banner.t-=dt;if(S.banner.t<=0)S.banner=null}
  S.shake=Math.max(0,S.shake-dt*30);
  for(const q of S.parts){q.life+=dt;q.x+=q.vx*dt;q.y+=q.vy*dt;q.r+=dt*8;
-  if(q.kind==='snow'){q.x+=Math.sin(q.r*.3)*dt*.4;continue}if(q.kind==='rocket'){q.vy+=7*dt;if(rnd()<.6)S.parts.push({x:q.x,y:q.y,vx:(rnd()-.5),vy:1,life:0,max:.35,col:'#ffe27a',kind:'spark',r:0});continue}
+  if(q.kind==='rocket'){q.vy+=7*dt;if(rnd()<.6)S.parts.push({x:q.x,y:q.y,vx:(rnd()-.5),vy:1,life:0,max:.35,col:'#ffe27a',kind:'spark',r:0});continue}
   if(q.kind==='burst'){q.vx*=.96;q.vy=q.vy*.96+2.5*dt;continue}
   q.vx*=.92;q.vy=q.vy*.92+(q.kind==='spark'?0:6*dt)}
  for(const q of S.parts)if(q.kind==='rocket'&&q.life>=q.max){if(S.mode==='over')sfx.pop();for(let k=0;k<46;k++){const a=rnd()*6.283,v=3+rnd()*5;S.parts.push({x:q.x,y:q.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:0,max:.9+rnd()*.6,col:rnd()<.2?'#fff':q.col,kind:'burst',r:0})}}
  S.parts=S.parts.filter(q=>q.life<q.max&&q.y<ROWS+1);
  for(const t of S.texts)t.t+=dt;S.texts=S.texts.filter(t=>t.t<1.3);
- if(THEMES[S.arena].snow&&rnd()<dt*30)S.parts.push({x:rnd()*COLS,y:-.2,vx:.3+rnd()*.3,vy:.7+rnd()*.6,life:0,max:30,col:'#fff',kind:'snow',r:rnd()*6});
  if(S.mode==='over'){S.fwT=(S.fwT||0)-dt;if(S.fwT<=0){S.fwT=.3+rnd()*.35;const cols=['#ffc63a','#ff5a3c','#14b8a6','#8b6cff','#ff4fc3','#9ff6ff'];S.parts.push({x:1.5+rnd()*(COLS-3),y:ROWS+.3,vx:(rnd()-.5)*1.5,vy:-(10+rnd()*3),life:0,max:.8+rnd()*.35,col:cols[Math.floor(rnd()*cols.length)],kind:'rocket',r:0})}}
  for(const b of S.breaks)b.t+=dt;
  S.breaks=S.breaks.filter(b=>{if(b.t<.6)return true;if(!S.cur||rnd()<POW_CHANCE){const type=drawPow(rnd());if(!S.grid[b.y][b.x]&&!bombAt(b.x,b.y))S.pows.push({x:b.x,y:b.y,type,t:0})}return false});

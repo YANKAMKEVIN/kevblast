@@ -32,27 +32,60 @@ export const ART_FILES = [
   'bonus_bomb', 'bonus_fire', 'bonus_speed', 'bonus_shield', 'bonus_kick', 'bonus_curse', 'bonus_max',
 ];
 
+/** Visuels peints de chaque arène (dossier art/arenes/, prompts dans tools/art/arenes.json). */
+export const ARENA_PARTS = /** @type {const} */ (['sol', 'pilier', 'caisse', 'borne', 'fond']);
+/** @typedef {typeof ARENA_PARTS[number]} ArenaPart */
+/**
+ * Nom du visuel d'une arène, pour art() : arenaArt('pilier', 'marche') -> 'arenes/pilier_marche'.
+ * @param {ArenaPart} part @param {string} id
+ */
+export const arenaArt = (part, id) => `arenes/${part}_${id}`;
+
 /** @type {Map<string, HTMLImageElement>} */
 const loaded = new Map();
+/** @type {Map<string, Promise<boolean>>} */
+const pending = new Map();
 
 /**
- * Charge tous les visuels. Se résout quand tout est chargé, ou au bout de `maxMs`
+ * Charge un visuel une seule fois (les appels suivants reçoivent la même promesse).
+ * @param {string} name
+ * @returns {Promise<boolean>} vrai si l'image est prête
+ */
+function loadOne(name) {
+  let p = pending.get(name);
+  if (!p) {
+    p = new Promise(res => {
+      const im = new Image();
+      im.decoding = 'async';
+      im.onload = () => { loaded.set(name, im); res(true); };
+      im.onerror = () => res(false);
+      im.src = `art/${name}.webp`;
+    });
+    pending.set(name, p);
+  }
+  return p;
+}
+
+/**
+ * Charge tous les visuels communs. Se résout quand tout est chargé, ou au bout de `maxMs`
  * (une image lente ou absente ne bloque jamais le jeu).
  * @param {number} [maxMs]
- * @returns {Promise<number>} nombre d'images prêtes
+ * @returns {Promise<number>} nombre d'images communes prêtes
  */
 export function loadArt(maxMs = 4000) {
-  const all = ART_FILES.map(name => new Promise(res => {
-    const im = new Image();
-    im.decoding = 'async';
-    im.onload = () => { loaded.set(name, im); res(true); };
-    im.onerror = () => res(false);
-    im.src = `art/${name}.webp`;
-  }));
   return Promise.race([
-    Promise.all(all),
+    Promise.all(ART_FILES.map(loadOne)),
     new Promise(res => setTimeout(res, maxMs)),
-  ]).then(() => loaded.size);
+  ]).then(() => ART_FILES.filter(n => loaded.has(n)).length);
+}
+
+/**
+ * Charge les visuels d'une arène (à la demande : seule l'arène jouée est attendue).
+ * @param {string} id
+ * @returns {Promise<number>} nombre de visuels prêts pour cette arène
+ */
+export function loadArena(id) {
+  return Promise.all(ARENA_PARTS.map(part => loadOne(arenaArt(part, id)))).then(r => r.filter(Boolean).length);
 }
 
 /**

@@ -3,10 +3,12 @@
    PICTURE: l'arène de jeu elle-même, en grand, dans un cadre de stand de foire
    COLOUR and TYPE: sarcelle profond, sable chaud, corail pétard, or ; Lilita One + Nunito
    LAYOUT: barre des joueurs en haut, arène centrée, réglages en surimpression */
-:root{--res:128px;--w:min(100%,calc((100vh - var(--res))*15/13),980px);color-scheme:dark;--bg:#0c2427;--frame:#123a3d;--sand:#f3d7a0;--coral:#ff5a3c;--gold:#ffc63a;--ink:#fff6e6;--mute:#9cc8c2}
+:root{--res:128px;--w:min(100%,calc((100vh - var(--res))*15/13),980px);color-scheme:dark;--bg:#0c2427;--frame:#123a3d;--sand:#f3d7a0;--coral:#ff5a3c;--gold:#ffc63a;--ink:#fff6e6;--mute:#9cc8c2;--fond:none;--ciel-a:#17474a;--ciel-b:#0c2427}
 *{box-sizing:border-box;min-width:0}
 html,body{height:100%}
-body{margin:0;background:radial-gradient(120% 80% at 50% 0%,#17474a 0%,var(--bg) 60%);color:var(--ink);font:16px/1.45 Nunito,system-ui,sans-serif;overflow-x:clip;display:flex;flex-direction:column;align-items:center;padding:10px 10px 16px}
+body{margin:0;background:radial-gradient(120% 80% at 50% 0%,var(--ciel-a) 0%,var(--ciel-b) 70%) fixed;transition:background-color .8s;color:var(--ink);font:16px/1.45 Nunito,system-ui,sans-serif;overflow-x:clip;display:flex;flex-direction:column;align-items:center;padding:10px 10px 16px}
+/* décor peint de l'arène derrière le plateau (posé par decor.setBackdrop), assombri au centre */
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(60% 70% at 50% 50%,#0008 0%,#0003 60%,#0006 100%),var(--fond) center/cover no-repeat;transition:opacity .6s}
 .top{width:var(--w);display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
 .logo{font:32px/1 'Lilita One',sans-serif;letter-spacing:.5px;color:var(--gold);text-shadow:0 3px 0 #b5361f,0 6px 14px #0008;margin-right:auto}
 .logo span{color:var(--coral);text-shadow:0 3px 0 #7a1d0e,0 6px 14px #0008}
@@ -20,7 +22,7 @@ body{margin:0;background:radial-gradient(120% 80% at 50% 0%,#17474a 0%,var(--bg)
 .card b{font:18px/1 'Lilita One',sans-serif;display:block}
 .card small{display:block;color:var(--mute);font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stars{margin-left:auto;font:18px/1 'Lilita One';color:var(--gold);white-space:nowrap}
-.stage{position:relative;flex:none;width:var(--w);aspect-ratio:15/13;border-radius:18px;overflow:hidden;box-shadow:0 0 0 6px #08191b,0 0 0 9px #2a6b66,0 24px 60px #000a}
+.stage{position:relative;flex:none;width:var(--w);aspect-ratio:15/13;border-radius:18px;overflow:hidden;box-shadow:0 0 0 5px #120a1cdd,0 0 0 8px #ffc63a55,0 0 40px 6px #ffb34733,0 24px 60px #000c}
 .stage canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 #clock{position:absolute;top:8px;left:50%;transform:translateX(-50%);font:22px/1 'Lilita One';background:#0c2427d9;padding:6px 14px;border-radius:999px;pointer-events:none;letter-spacing:1px}
 #clock.final{background:var(--coral);animation:pulse .6s infinite alternate}
