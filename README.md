@@ -33,6 +33,9 @@ Garde la touche bombe enfoncée pour charger ton pétard :
 | Pip | Double mèche : commence avec 2 pétards |
 | Mox | Bulle : un bouclier offert à chaque manche |
 
+## Visuels
+L'affiche du menu, le sol, les murs, les caisses, les portraits des 4 héros et les 7 bonus sont peints avec Codex (`art/`, WebP). Les prompts sont dans `tools/art/prompts.json` ; `tools/art/generer.sh` les génère et `tools/art/finir.py` redimensionne, détoure le fond magenta et exporte en WebP. Le jeu reste jouable si une image manque : le dessin procédural d'origine prend le relais (`src/art.js`).
+
 ## Les bonus
 
 Pétard en plus, portée, vitesse, bouclier, coup de pied (pousse les bombes), étoile (flamme max).

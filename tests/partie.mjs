@@ -31,6 +31,10 @@ try {
   await page.goto(URL);
   await page.waitForSelector('#play');
   check(await page.locator('.ver').innerText() !== '', 'numéro de version affiché sous le menu');
+  await page.waitForFunction(() => window.__kev.art !== undefined, null, { timeout: 15000 });
+  check(await page.evaluate(() => window.__kev.art) === 15, 'les 15 visuels peints sont chargés');
+  check((await page.locator('#ov').evaluate(el => getComputedStyle(el).backgroundImage)).includes('titre.webp'), 'affiche peinte derrière le menu');
+  await page.screenshot({ path: `${OUT}/partie-0-menu.png` });
   await page.click('.seg[data-k=goal] button[data-v="2"]');
   await page.click('.heroes[data-k=h1] button[data-v="2"]');
   await page.click('#play');

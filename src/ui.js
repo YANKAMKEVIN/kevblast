@@ -39,7 +39,7 @@ function play() {
 hooks.hud = updateHud;
 hooks.roundEnd = w => {
   data.stats.rounds++; Save.save(store, data);
-  ov.hidden = false;
+  ov.hidden = false; ov.classList.remove('menu');
   ov.innerHTML = `<div class="panel"><h2 style="color:${w ? w.hero.col : '#fff'}">${w ? w.hero.name + ' remporte la manche !' : 'Égalité, tout le monde a sauté !'}</h2>${scoreHtml()}<p class="sub">Manche suivante…</p></div>`;
   setTimeout(() => { if (S.mode === 'roundEnd') { ov.hidden = true; startRound(); } }, timing.between);
 };
@@ -62,7 +62,7 @@ export function updateHud(){if(S.mode==='demo'||!S.cur)return;S.players.forEach(
  st.textContent='★'.repeat(p.wins)})}
 
 /** @param {Player} c */
-function showEnd(c){S.mode='over';ov.hidden=false;
+function showEnd(c){S.mode='over';ov.hidden=false;ov.classList.remove('menu');
  ov.innerHTML=`<div class="panel"><p class="sub" style="margin:0">Champion du festival</p><canvas id="champ" width="200" height="200" style="width:120px;height:120px;display:block;margin:4px auto -6px"></canvas><h1 style="color:${c.hero.col};text-shadow:0 5px 0 ${c.hero.dk},0 10px 24px #000a">${c.hero.name}</h1><p class="sub">${c.human>=0?'Joueur '+(c.human+1)+', le roi des pétards.':'Un bot a gagné… revanche ?'}</p>${scoreHtml()}
  <button class="go" id="again">Revanche</button><br><button class="go alt" id="tomenu">Menu</button></div>`;
  heroPortrait(/** @type {HTMLCanvasElement} */($('champ')),HEROES.indexOf(c.hero),200);
@@ -76,7 +76,7 @@ export function showMenu(){persist();S.paused=false;startMatch(true);clockEl.hid
 function heroPick(k,val,taken){return `<div class="heroes" data-k="${k}">${HEROES.map((h,i)=>`<button aria-pressed="${i===val}" data-v="${i}" ${i===taken?'disabled':''} style="color:${h.col}"><canvas data-h="${i}" width="88" height="88"></canvas>${h.name}</button>`).join('')}</div>`}
 function renderMenu(){const s=S.settings;if(s.h2===s.h1)s.h2=(s.h1+1)%4;const maxB=4-s.humans,minB=s.humans===1?1:0;s.bots=clamp(s.bots,minB,maxB);
  const dis=[0,1,2,3].filter(v=>v<minB||v>maxB);
- ov.innerHTML=`<div class="panel"><h1>KEV<span>BLAST</span></h1><p class="sub">Le festival des pétards. Fais sauter les caisses, ramasse les bonus, sois le dernier debout.</p>
+ ov.classList.add('menu');ov.innerHTML=`<div class="panel"><h1>KEV<span>BLAST</span></h1><p class="sub">Le festival des pétards. Fais sauter les caisses, ramasse les bonus, sois le dernier debout.</p>
  <div class="row"><span>Joueurs</span>${seg('humans',[[1,'1 joueur'],[2,'2 joueurs']],s.humans)}</div>
  <div class="row"><span>Héros joueur 1</span>${heroPick('h1',s.h1,-1)}</div><p class="pow"><b>${HEROES[s.h1].pw} :</b> ${HEROES[s.h1].pd}</p>
  ${s.humans>1?`<div class="row"><span>Héros joueur 2</span>${heroPick('h2',s.h2,s.h1)}</div><p class="pow"><b>${HEROES[s.h2].pw} :</b> ${HEROES[s.h2].pd}</p>`:''}
@@ -93,7 +93,7 @@ function renderMenu(){const s=S.settings;if(s.h2===s.h1)s.h2=(s.h1+1)%4;const ma
  ov.querySelectorAll('.seg,.heroes').forEach(sg=>sg.addEventListener('click',e=>{const b=/** @type {HTMLButtonElement|null} */(/** @type {HTMLElement} */(e.target).closest('button'));if(!b||b.disabled)return;/** @type {any} */(s)[/** @type {string} */(/** @type {HTMLElement} */(sg).dataset.k)]=Number(b.dataset.v);persist();renderMenu()}));
  $('play').onclick=()=>{audio();play()}}
 export function togglePause(){if(!['play','countdown'].includes(S.mode))return;S.paused=!S.paused;ov.hidden=!S.paused;
- if(S.paused){ov.innerHTML=`<div class="panel"><h2>Pause</h2>${scoreHtml()}<button class="go" id="resume">Reprendre</button><br><button class="go alt" id="quit">Quitter la partie</button></div>`;
+ if(S.paused){ov.classList.remove('menu');ov.innerHTML=`<div class="panel"><h2>Pause</h2>${scoreHtml()}<button class="go" id="resume">Reprendre</button><br><button class="go alt" id="quit">Quitter la partie</button></div>`;
   $('resume').onclick=togglePause;$('quit').onclick=showMenu}}
 export function toggleMusic(){music.on=!music.on;$('bMusic').textContent=music.on?'♪ On':'♪ Off';persist()}
 
