@@ -4,7 +4,10 @@ Usage : python finir.py PROMPTS_JSON DOSSIER_BRUT DOSSIER_SORTIE [fichier ...]
 - recadre (centre, cover) puis redimensionne à la taille exacte demandée ;
 - si detourer : fond magenta #FF00FF -> transparent (tolérance + bord adouci + suppression du halo rose) ;
 - si raccord: N (dans le JSON) ou RACCORD="nom:N" (environnement), fond les N px des bords gauche/droite (panoramas en boucle) ;
-- enregistre <fichier>.webp qualité 85, ou au chemin « sortie » du JSON (.png accepté, sous-dossiers créés).
+- enregistre <fichier>.webp qualité 85, ou au chemin « sortie » du JSON (.png accepté, sous-dossiers créés) ;
+- si decouper (fiche de modèle d'un héros) : sépare les vues posées côte à côte (colonnes
+  vides entre elles), recadre chacune au plus juste et enregistre heros_<id>_<vue>.webp,
+  hauteur SPRITE_H (le jeu les affiche à ~67 px, ~134 px sur écran Retina).
 """
 import json, sys
 from pathlib import Path
@@ -15,6 +18,7 @@ import os
 # RACCORD="ciel_a:128,ciel_b:128" : fond les bords gauche/droite de ces images
 RACCORD = dict((k, int(v)) for k, v in (e.split(":") for e in os.environ.get("RACCORD", "").split(",") if e))
 TOL_DUR, TOL_DOUX = 45.0, 95.0  # distance RGB au magenta : <dur = transparent, >doux = opaque
+SPRITE_H = 192
 
 def cover(img, w, h):
     """Recadre sans déformer. Panoramas (largeur >= 3x hauteur) : on garde le bas (ligne d'horizon)."""
@@ -97,6 +101,27 @@ def detourer(img):
     out = np.dstack([np.clip(a, 0, 255), alpha * 255]).astype(np.uint8)
     return Image.fromarray(out)
 
+def vues(img, n):
+    """Les n plus larges blocs de colonnes non vides, de gauche à droite."""
+    a = np.asarray(img)[..., 3] > 40
+    cols = a.sum(0) > 2
+    blocs, debut = [], None
+    for x, plein in enumerate(list(cols) + [False]):
+        if plein and debut is None: debut = x
+        if not plein and debut is not None: blocs.append((debut, x)); debut = None
+    # fusionne les blocs séparés par un trou étroit (un bras, une étincelle détachée)
+    fus = []
+    for b in blocs:
+        if fus and b[0] - fus[-1][1] < img.width * 0.02: fus[-1] = (fus[-1][0], b[1])
+        else: fus.append(b)
+    fus = sorted(sorted(fus, key=lambda b: b[1] - b[0], reverse=True)[:n])
+    if len(fus) != n: raise SystemExit(f"{n} vues attendues, {len(fus)} trouvées")
+    out = []
+    for x0, x1 in fus:
+        v = img.crop((x0, 0, x1, img.height)); bb = v.getbbox(); v = v.crop(bb)
+        out.append(v.resize((max(1, round(v.width * SPRITE_H / v.height)), SPRITE_H), Image.LANCZOS))
+    return out
+
 def raccorder(img, bande):
     """Rend une image raccordable gauche/droite : les `bande` px de droite sont fondus dans
     ceux de gauche puis retirés ; l'image est ensuite ramenée à sa largeur d'origine."""
@@ -117,6 +142,13 @@ def main():
         img = cover(Image.open(src).convert("RGB"), w, h)
         # détourer d'abord : fondre les bords avant mélangerait le magenta au sujet
         if im.get("detourer"): img = detourer(img)
+        if im.get("decouper"):
+            hid = im["fichier"].split("_", 1)[1]
+            for nom, v in zip(im["decouper"], vues(img, len(im["decouper"]))):
+                dst = Path(sortie) / f"heros_{hid}_{nom}.webp"
+                v.save(dst, "WEBP", quality=88, method=6)
+                print(f"{dst.name} {v.width}x{v.height} {dst.stat().st_size // 1024} Ko")
+            continue
         bande = im.get("raccord") or RACCORD.get(im["fichier"])
         if bande: img = raccorder(img, int(bande))
         dst = Path(sortie) / im.get("sortie", f"{im['fichier']}.webp")

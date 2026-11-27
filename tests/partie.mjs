@@ -7,6 +7,7 @@ import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import { createServer, connect } from 'node:net';
 import { mkdirSync } from 'node:fs';
+import { ART_FILES } from '../src/art.js';
 
 const PORT = await new Promise(res => { const s = createServer().listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => res(p)); }); });
 const URL = `http://127.0.0.1:${PORT}/index.html?turbo=20&graine=3`;
@@ -32,7 +33,7 @@ try {
   await page.waitForSelector('#play');
   check(await page.locator('.ver').innerText() !== '', 'numéro de version affiché sous le menu');
   await page.waitForFunction(() => window.__kev.art !== undefined, null, { timeout: 15000 });
-  check(await page.evaluate(() => window.__kev.art) === 15, 'les 15 visuels peints sont chargés');
+  check(await page.evaluate(() => window.__kev.art) === ART_FILES.length, `les ${ART_FILES.length} visuels peints sont chargés`);
   check((await page.locator('#ov').evaluate(el => getComputedStyle(el).backgroundImage)).includes('titre.webp'), 'affiche peinte derrière le menu');
   await page.screenshot({ path: `${OUT}/partie-0-menu.png` });
   await page.click('.seg[data-k=goal] button[data-v="2"]');

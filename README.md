@@ -24,17 +24,21 @@ Garde la touche bombe enfoncée pour charger ton pétard :
 - Chargé à fond : flamme rose qui traverse 2 caisses
 - Pendant la charge, tu ralentis
 
-## Les héros
+## Les héros : les Pétards Vivants
 
-| Héros | Pouvoir |
-|---|---|
-| Kev | Flamme vive : commence avec 3 cases de portée |
-| Nova | Turbo : commence plus rapide |
-| Pip | Double mèche : commence avec 2 pétards |
-| Mox | Bulle : un bouclier offert à chaque manche |
+Les pièces d'artifice elles-mêmes, en carton peint, avec des bras et des jambes en caoutchouc.
+
+| Héros | Qui c'est | Pouvoir |
+|---|---|---|
+| Kev | La bombe boxeuse, fanfaron au grand cœur | Flamme vive : commence avec 3 cases de portée |
+| Nova | La fusée pilote, toujours pressée | Turbo : commence plus rapide |
+| Pip | Les pétards jumeaux, deux têtes et zéro accord | Double mèche : commence avec 2 pétards |
+| Mox | La boule fumigène, zen dans sa bulle | Bulle : un bouclier offert à chaque manche |
+
+Dans l'arène, chaque héros a trois vues peintes (face, dos, profil, en miroir vers la gauche) que le code anime : petits bonds et dandinement en marchant, respiration au repos, tremblement pendant la Surcharge. Mox flotte, Nova laisse des traits de vitesse, un anneau à sa couleur repère chaque joueur. Chacun a ses répliques (K.O., victoire de manche, titre), choisies sans toucher au hasard de la partie pour qu'une graine rejoue toujours la même partie. L'écran du champion montre sa pose de victoire.
 
 ## Visuels
-L'affiche du menu, le sol, les murs, les caisses, les portraits des 4 héros et les 7 bonus sont peints avec Codex (`art/`, WebP). Les prompts sont dans `tools/art/prompts.json` ; `tools/art/generer.sh` les génère et `tools/art/finir.py` redimensionne, détoure le fond magenta et exporte en WebP. Le jeu reste jouable si une image manque : le dessin procédural d'origine prend le relais (`src/art.js`).
+L'affiche du menu, le sol, les murs, les caisses, les héros (portrait, pose de victoire, trois vues d'arène) et les 7 bonus sont peints avec Codex (`art/`, WebP, 31 images). Les prompts sont dans `tools/art/prompts.json` ; les images de héros joignent la planche de référence `tools/art/references/petards_vivants.jpg` pour garder le même design partout. `tools/art/generer.sh` les génère et `tools/art/finir.py` redimensionne, détoure le fond magenta, découpe la fiche de modèle de chaque héros en trois vues et exporte en WebP. Le jeu reste jouable si une image manque : le dessin procédural d'origine prend le relais (`src/art.js`).
 
 ## Les bonus
 
@@ -74,7 +78,7 @@ npm install
 npx playwright install chromium
 npm test              # tout ce que lance la CI
 npm run types         # vérification des types
-npm run unit          # règles, bots, sauvegarde, 11 parties complètes simulées (Node, ~5 s)
+npm run unit          # règles, bots, héros, sauvegarde, 11 parties complètes simulées (Node, ~5 s)
 npm run smoke         # fumée : ordinateur, iPhone SE, Pixel 7 couché (captures dans test-results/)
 npm run partie        # partie complète dans Chromium : menu -> champion -> sauvegarde -> rechargement
 ```
