@@ -54,7 +54,7 @@ async function tapOn(page, sel, holdMs = 0) {
 /** Diagnostic d'un échec : fenêtre qui a le focus et dernières lignes utiles du journal. @param {string} what */
 async function diag(what) {
   const focus = (await sh('dumpsys window | grep -E "mCurrentFocus|mFocusedApp" | head -2')).trim().replace(/\s+/g, ' ');
-  const log = (await sh('logcat -d -v time')).split('\n').filter(l => /KEVBLAST|AppPlugin|Firing change|backButton|ANR|not responding|InputDispatcher.*(drop|Drop|focus)/i.test(l)).slice(-12);
+  const log = (await sh('logcat -d -v time')).split('\n').filter(l => /KEVBLAST|Capacitor\/AppPlugin|Firing change|backButton|ANR|not responding|InputDispatcher.*(drop|Drop|focus)/i.test(l)).slice(-12);
   console.log(`      ${what}\n      focus : ${focus}\n${log.map(l => '      | ' + l.trim()).join('\n')}`);
 }
 
@@ -62,6 +62,10 @@ try {
   await device.installApk(readFileSync(APK));
   await sh(`pm clear ${PKG}`);
   await sh('settings put system accelerometer_rotation 0; settings put system user_rotation 0');
+  // Bulle « Plein écran : balayez vers le bas pour quitter » qu'Android montre une seule fois
+  // par appli : tant qu'elle est là, elle prend le focus et la touche retour (sur un vrai
+  // téléphone on la ferme d'un toucher). On la marque comme déjà vue.
+  await sh('settings put secure immersive_mode_confirmations confirmed');
   await sh('logcat -c');
   const t0 = Date.now();
   await sh(`am start -W -n ${PKG}/.MainActivity`);
