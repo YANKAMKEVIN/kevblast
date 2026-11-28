@@ -1,7 +1,7 @@
 // Appli Android : cohérence de la configuration, fichiers embarqués, icônes, bouton retour.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { backAction } from '../../src/natif.js';
@@ -86,4 +86,17 @@ test('icônes et écran de démarrage présents pour toutes les densités', () =
   }
   const styles = read('android/app/src/main/res/values/styles.xml');
   assert.match(styles, /windowSplashScreenAnimatedIcon">@drawable\/splash_icon/);
+});
+
+test('les fichiers XML Android sont bien formés (ce que refuse aapt avant même la construction)', () => {
+  const walk = (/** @type {string} */ d) => readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(join(d, e.name)) : e.name.endsWith('.xml') ? [join(d, e.name)] : []);
+  const files = walk(join(ROOT, 'android/app/src/main'));
+  assert.ok(files.length > 5);
+  for (const f of files) {
+    const xml = readFileSync(f, 'utf8');
+    for (const [, c] of xml.matchAll(/<!--([\s\S]*?)-->/g)) assert.ok(!c.includes('--'), `${f} : « -- » interdit dans un commentaire XML`);
+    const open = (xml.match(/<[A-Za-z][^>]*[^/]>/g) || []).filter(t => !t.startsWith('<?')).length;
+    const close = (xml.match(/<\/[^>]+>/g) || []).length;
+    assert.equal(open, close, `${f} : balises ouvertes et fermées en nombre différent`);
+  }
 });
