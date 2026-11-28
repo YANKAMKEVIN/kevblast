@@ -3,12 +3,12 @@
 import { COLS, ROWS, T, FUSE, FLAME, HEROES, THEMES, ICON } from './config.js';
 import { S } from './state.js';
 import { clamp } from './rng.js';
-import { art, heroView, HERO_ART, HERO_WIN, HERO_SPRITES } from './art.js';
+import { art, heroView, loadArena, HERO_ART, HERO_WIN, HERO_SPRITES } from './art.js';
+import { initLight, drawLighting } from './lumiere.js';
+import * as decor from './decor.js';
 
 /** @type {HTMLCanvasElement} */ let cv;
 /** @type {CanvasRenderingContext2D} */ let ctx;
-/** @type {HTMLCanvasElement} */ let nightC;
-/** @type {CanvasRenderingContext2D} */ let nctx;
 const DPR = Math.min(2, window.devicePixelRatio || 1);
 /** Horloge des animations (secondes). */
 let now = 0;
@@ -19,12 +19,11 @@ export function setNow(t) { now = t; }
 export function initRender(canvas) {
   cv = canvas; ctx = /** @type {CanvasRenderingContext2D} */ (cv.getContext('2d'));
   cv.width = COLS * T * DPR; cv.height = ROWS * T * DPR;
-  nightC = document.createElement('canvas'); nightC.width = cv.width; nightC.height = cv.height;
-  nctx = /** @type {CanvasRenderingContext2D} */ (nightC.getContext('2d'));
+  initLight(DPR); decor.setSpriteDpr(DPR);
 }
 
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
-function buildFloor(){const f=document.createElement('canvas');f.width=COLS*T*DPR;f.height=ROWS*T*DPR;const c=/** @type {CanvasRenderingContext2D} */(f.getContext('2d'));c.scale(DPR,DPR);
+function buildFloor(){const th=THEMES[S.arena];if(art(`arenes/sol_${th.id}`)){S.floor=decor.buildFloor(th,DPR,S.grid);return}const f=document.createElement('canvas');f.width=COLS*T*DPR;f.height=ROWS*T*DPR;const c=/** @type {CanvasRenderingContext2D} */(f.getContext('2d'));c.scale(DPR,DPR);
  const pal=THEMES[S.arena].floor,sol=art('sol');
  if(sol){paintFloor(c,sol,pal);S.floor=f;return}
  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){c.fillStyle=(x+y)%2?pal[0]:pal[1];c.fillRect(x*T,y*T,T,T);c.fillStyle=pal[2];c.globalAlpha=.35;c.fillRect(x*T,y*T+T-2,T,2);c.fillRect(x*T+T-2,y*T,2,T);c.globalAlpha=1;
@@ -45,7 +44,8 @@ function paintBlock(name,px,py,tint){const im=art(name);if(!im)return false;
  ctx.drawImage(im,px,py,T,T);
  if(tint){ctx.globalCompositeOperation='multiply';ctx.fillStyle=tint;ctx.globalAlpha=.45;ctx.fillRect(px,py,T,T);ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1}
  return true}
-function drawHard(x,y){const px=x*T,py=y*T,border=x===0||y===0||x===COLS-1||y===ROWS-1;
+function drawHard(x,y){const px=x*T,py=y*T,border=x===0||y===0||x===COLS-1||y===ROWS-1,th=THEMES[S.arena];
+ if(border?decor.drawRim(ctx,th,x,y):decor.drawPillar(ctx,th,x,y))return;
  if(paintBlock('mur',px,py,border?THEMES[S.arena].border[1]:null))return;
  ctx.fillStyle='#0003';ctx.fillRect(px+4,py+T-4,T,6);
  const hc=border?THEMES[S.arena].border:THEMES[S.arena].hard;ctx.fillStyle=hc[2];rr(ctx,px+1,py+T*.2,T-2,T*.8-1,6);ctx.fill();
@@ -54,7 +54,9 @@ function drawHard(x,y){const px=x*T,py=y*T,border=x===0||y===0||x===COLS-1||y===
  ctx.fillStyle='#ffffff30';rr(ctx,px+5,py+4,T-10,5,3);ctx.fill();
  if(!border){ctx.strokeStyle='#ffffff22';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px+T*.3,py+T*.25);ctx.lineTo(px+T*.5,py+T*.45);ctx.lineTo(px+T*.7,py+T*.25);ctx.stroke()}
  else if((x+y)%3===0){ctx.fillStyle='#ffc63a';ctx.globalAlpha=(THEMES[S.arena].night?.8:.25)+.15*Math.sin(now*3+x+y);ctx.beginPath();ctx.arc(px+T/2,py+T*.36,5,0,7);ctx.fill();ctx.globalAlpha=1}}
-function drawSoft(x,y){const px=x*T,py=y*T;
+/** @param {number} x @param {number} y @param {number} [squash] */
+function drawSoft(x,y,squash=0){const px=x*T,py=y*T;
+ if(decor.drawCrate(ctx,THEMES[S.arena],x,y,squash))return;
  if(paintBlock('caisse',px+1,py+1,null))return;
  ctx.fillStyle='#0003';ctx.fillRect(px+5,py+T-5,T-4,6);
  ctx.fillStyle='#b8341f';rr(ctx,px+3,py+T*.24,T-6,T*.72,6);ctx.fill();
@@ -72,13 +74,19 @@ function drawBomb(b){const px=(b.x+b.vx*b.off+.5)*T,py=(b.y+b.vy*b.off+.5)*T,u=1
  if(u>.65&&Math.floor(b.age*16)%2){ctx.fillStyle='#ffffff55';ctx.beginPath();ctx.arc(px,py,R,0,7);ctx.fill()}
  ctx.strokeStyle='#e8d2a0';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(px+R*.3,py-R*.85);ctx.quadraticCurveTo(px+R*.6,py-R*1.3,px+T*.16,py-T*.36);ctx.stroke();
  ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px+T*.16,py-T*.36,2.5+Math.random()*1.5,0,7);ctx.fill()}
-function drawFlame(f){const px=f.x*T,py=f.y*T,a=clamp(f.t/FLAME,0,1),w=T*(.42+.3*a)*(1+f.lvl*.08);
- const cols=f.lvl>1?['#ff4fc3','#ffb0f0','#fff']:['#ff5a3c','#ffc63a','#fffbe0'];
+/** Flamme d'explosion : trois couches qui vacillent (la plus chaude en additif), langues de feu
+ * le long du jet et cœur blanc au centre de l'explosion. */
+function drawFlame(f){const px=f.x*T,py=f.y*T,a=clamp(f.t/FLAME,0,1),fl=1+.09*Math.sin(now*38+f.x*3.1+f.y*5.3),w=T*(.42+.3*a)*(1+f.lvl*.08)*fl;
+ const cols=f.lvl>1?['#ff2fa8','#ffb0f0','#fff']:['#ff4a2a','#ffc63a','#fffbe0'];
  ctx.globalAlpha=Math.min(1,a*1.6);
- for(let i=0;i<3;i++){const ww=w*(1-i*.3);ctx.fillStyle=cols[i];
-  if(f.o==='c'){ctx.beginPath();ctx.arc(px+T/2,py+T/2,ww*.62,0,7);ctx.fill();ctx.fillRect(px,py+T/2-ww/2,T,ww);ctx.fillRect(px+T/2-ww/2,py,ww,T)}
+ for(let i=0;i<3;i++){const ww=w*(1-i*.3);ctx.fillStyle=cols[i];if(i)ctx.globalCompositeOperation='lighter';
+  if(f.o==='c'){ctx.beginPath();ctx.arc(px+T/2,py+T/2,ww*.66,0,7);ctx.fill();ctx.fillRect(px,py+T/2-ww/2,T,ww);ctx.fillRect(px+T/2-ww/2,py,ww,T)}
   else if(f.o==='h')rr(ctx,px-1,py+T/2-ww/2,T+2,ww,ww/2),ctx.fill();else rr(ctx,px+T/2-ww/2,py-1,ww,T+2,ww/2),ctx.fill()}
- ctx.globalAlpha=1}
+ // langues de feu qui montent (trois quarts : la chaleur monte vers le haut de l'écran)
+ ctx.fillStyle=cols[1];for(let k=0;k<2;k++){const ph=now*9+f.x*1.7+f.y*2.3+k*2.1,lx=px+T*(.3+.4*k)+Math.sin(ph)*3,lh=T*(.25+.2*Math.abs(Math.sin(ph*.7)))*a;
+  ctx.globalAlpha=.6*a;ctx.beginPath();ctx.moveTo(lx-5,py+T/2);ctx.quadraticCurveTo(lx+Math.sin(ph*1.3)*6,py+T/2-lh*1.2,lx+1,py+T/2-lh*1.6);ctx.quadraticCurveTo(lx+4,py+T/2-lh*.6,lx+5,py+T/2);ctx.fill()}
+ if(f.o==='c'&&a>.6){ctx.globalAlpha=(a-.6)*2.5;ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(px+T/2,py+T/2,T*.75*a,0,7);ctx.fill()}
+ ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1}
 function drawPow(p){const px=(p.x+.5)*T,py=(p.y+.5)*T+Math.sin(now*4+p.x)*3,s=Math.min(1,p.t*4);
  ctx.save();ctx.translate(px,py);ctx.scale(s,s);
  ctx.fillStyle='#0003';ctx.beginPath();ctx.ellipse(0,T*.33,T*.25,T*.08,0,0,7);ctx.fill();
@@ -153,7 +161,30 @@ function drawCharge(c,p,px,py){
   const col=['#fff6e6','#ffc63a','#ff4fc3'][l];c.strokeStyle='#0006';c.lineWidth=6;c.beginPath();c.arc(px,py,T*.5,0,7);c.stroke();
   c.strokeStyle=col;c.lineWidth=4;c.beginPath();c.arc(px,py,T*.5,-Math.PI/2,-Math.PI/2+Math.PI*2*clamp(pr,0,1));c.stroke();
   if(l>0){c.fillStyle=col;c.font='18px "Lilita One"';c.textAlign='center';c.fillText(l===2?'MAX!':'+2',px,py-T*.98)}}}
+/** Arène dont les visuels sont demandés / dernier instant dessiné (pour l'ambiance). */
+let arenaAsked=-1,lastNow=0,preloaded=false;
+/** Qualité adaptative : si les images ralentissent durablement (téléphone modeste), on retire
+ * la passe de halos additifs, la plus coûteuse, sans toucher au jeu. */
+const perf={avg:1/60,slowT:0,low:false};
+/** @param {number} dt */
+function governor(dt){if(dt<=0||dt>.2)return;perf.avg+=(dt-perf.avg)*.05;
+ if(!perf.low&&perf.avg>1/38){perf.slowT+=dt;if(perf.slowT>3){perf.low=true;const w=/** @type {any} */(window);if(w.__kev)w.__kev.lowFx=true}}else perf.slowT=0}
+/** Visuels de l'arène jouée : chargés à la demande, puis les autres en arrière-plan. */
+function ensureArena(){if(arenaAsked===S.arena)return;arenaAsked=S.arena;const th=THEMES[S.arena];
+ loadArena(th.id).then(n=>{if(n&&THEMES[S.arena]===th){S.floor=null;decor.setBackdrop(th)}
+  const w=/** @type {any} */(window);if(w.__kev){w.__kev.arenes=w.__kev.arenes||{};w.__kev.arenes[th.id]=n}
+  if(!preloaded){preloaded=true;THEMES.reduce((p,t)=>p.then(()=>loadArena(t.id)),Promise.resolve(0))}});
+ decor.setBackdrop(th)}
+/** Lumières du moment : décor, héros, pétards, flammes, bonus. @param {import('./config.js').Theme} th */
+function lights(th){const L=decor.decorLights(th,S.grid,now),n=!!th.night;
+ for(const p of S.players)if(p.alive)L.push({x:p.x,y:p.y-.2,r:(n?2.3:1.7)+Math.sin(now*9+p.id)*.06,a:n?1:.7});
+ for(const b of S.bombs){const u=1-b.t/FUSE;L.push({x:b.x+b.vx*b.off+.5,y:b.y+b.vy*b.off+.5,r:1.3+u*.6,a:.9,col:b.lvl>1?'#ff4fc3':'#ffb03a',g:.25+u*.35})}
+ for(const f of S.flames){const a=clamp(f.t/FLAME,0,1);L.push({x:f.x+.5,y:f.y+.5,r:1.6+(f.o==='c'?.8:0),a:1,col:f.lvl>1?'#ff4fc3':'#ffa030',g:.55*a+(f.o==='c'?.4*a:0)})}
+ for(const p of S.pows)L.push({x:p.x+.5,y:p.y+.5,r:.9,a:.7,col:'#ffe9a0',g:.2});
+ return L}
 export function draw(){
+ const th=THEMES[S.arena];ensureArena();
+ const raw=now-lastNow,dt=Math.min(.05,Math.max(0,raw));lastNow=now;governor(raw);decor.updateAmbience(th,dt);
  if(!S.floor)buildFloor();
  ctx.setTransform(DPR,0,0,DPR,0,0);
  const sh=S.shake;ctx.translate((Math.random()-.5)*sh,(Math.random()-.5)*sh);
@@ -162,32 +193,23 @@ export function draw(){
  for(const f of S.flames)drawFlame(f);
  for(let y=0;y<ROWS;y++){
   for(let x=0;x<COLS;x++){const v=S.grid[y][x];if(v===1)drawHard(x,y);else if(v===2)drawSoft(x,y)}
-  for(const b of S.breaks)if(b.y===y){const k=b.t/.6;ctx.globalAlpha=1-k;ctx.save();ctx.translate((b.x+.5)*T,(b.y+.5)*T);ctx.scale(1+k*.4,1-k*.6);ctx.translate(-(b.x+.5)*T,-(b.y+.5)*T);drawSoft(b.x,b.y);ctx.restore();ctx.globalAlpha=1}
+  decor.drawGarlands(ctx,th,y,now);
+  for(const b of S.breaks)if(b.y===y){const k=b.t/.6;ctx.globalAlpha=1-k;ctx.save();ctx.translate((b.x+.5)*T,(b.y+1)*T);ctx.scale(1+k*.4,1-k*.6);ctx.translate(-(b.x+.5)*T,-(b.y+1)*T);drawSoft(b.x,b.y);ctx.restore();ctx.globalAlpha=1}
   for(const p of S.pows)if(p.y===y)drawPow(p);
   for(const b of S.bombs)if(b.y===y)drawBomb(b);
   for(const p of S.players)if(Math.floor(p.y)===y)drawHero(ctx,p)}
- ctx.globalCompositeOperation='lighter';
- for(const f of S.flames){const a=clamp(f.t/FLAME,0,1);ctx.globalAlpha=a*.5;const g=ctx.createRadialGradient((f.x+.5)*T,(f.y+.5)*T,0,(f.x+.5)*T,(f.y+.5)*T,T*.9);g.addColorStop(0,f.lvl>1?'#ff4fc3':'#ffb03a');g.addColorStop(1,'#0000');ctx.fillStyle=g;ctx.fillRect((f.x-.5)*T,(f.y-.5)*T,T*2,T*2)}
- ctx.globalAlpha=1;
- for(const q of S.parts){const a=1-q.life/q.max;ctx.globalAlpha=a;ctx.fillStyle=q.col;
-  if(q.kind==='snow'){ctx.globalAlpha=.85;ctx.beginPath();ctx.arc(q.x*T,q.y*T,2+(q.r%2),0,7);ctx.fill()}
-  else if(q.kind==='spark'||q.kind==='burst'||q.kind==='rocket'){ctx.beginPath();ctx.arc(q.x*T,q.y*T,q.kind==='rocket'?3.5:2+a*2.5,0,7);ctx.fill()}else{ctx.save();ctx.translate(q.x*T,q.y*T);ctx.rotate(q.r);ctx.fillRect(-3,-2,6,q.kind==='chip'?4:3);ctx.restore()}}
- ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
  for(const f of S.falls){const k=Math.min(1,f.t/.35);ctx.fillStyle='#0005';ctx.beginPath();ctx.ellipse((f.x+.5)*T,(f.y+.8)*T,T*.45*k,T*.15*k,0,0,7);ctx.fill();
   if(!f.done){ctx.save();ctx.translate(0,-(1-k)*T*5);drawHard(f.x,f.y);ctx.restore()}}
- if(THEMES[S.arena].night)drawNight();
+ drawLighting(ctx,perf.low&&!th.night?{dark:0,shade:th.shade}:th,lights(th),perf.low?0:th.night?1:.8);
+ ctx.globalCompositeOperation='lighter';
+ for(const q of S.parts){const a=1-q.life/q.max;ctx.globalAlpha=a;ctx.fillStyle=q.col;
+  if(q.kind==='spark'||q.kind==='burst'||q.kind==='rocket'){ctx.beginPath();ctx.arc(q.x*T,q.y*T,q.kind==='rocket'?3.5:2+a*2.5,0,7);ctx.fill()}else{ctx.save();ctx.translate(q.x*T,q.y*T);ctx.rotate(q.r);ctx.fillRect(-3,-2,6,q.kind==='chip'?4:3);ctx.restore()}}
+ ctx.globalCompositeOperation='source-over';ctx.globalAlpha=1;
+ decor.drawAmbience(ctx,th,now);
  for(const t of S.texts){const a=1-t.t/1.3;ctx.globalAlpha=Math.min(1,a*2);ctx.font='17px "Lilita One",sans-serif';ctx.textAlign='center';ctx.lineWidth=5;ctx.strokeStyle='#0c2427';const yy=(t.y-t.t*.8)*T,hw=ctx.measureText(t.text).width/2+6,xx=clamp(t.x*T,hw,COLS*T-hw);ctx.strokeText(t.text,xx,yy);ctx.fillStyle=t.col;ctx.fillText(t.text,xx,yy)}
  ctx.globalAlpha=1;
  if(S.mode==='countdown'){const n=Math.ceil(S.cd),fr=S.cd-Math.floor(S.cd);bigText(n>0?String(n):'',1.4-fr*.4,'#fff')}
  if(S.banner&&S.mode!=='demo'){const a=clamp(S.banner.t*2,0,1);ctx.globalAlpha=a;bigText(S.banner.text,S.banner.text==='BOUM !'?1.3:.55,'#ffc63a',S.mode==='countdown'?-2.2:0);ctx.globalAlpha=1}}
-function drawNight(){const n=nctx;n.setTransform(DPR,0,0,DPR,0,0);n.globalCompositeOperation='source-over';n.clearRect(0,0,COLS*T,ROWS*T);n.fillStyle='rgba(6,10,30,.74)';n.fillRect(0,0,COLS*T,ROWS*T);
- n.globalCompositeOperation='destination-out';const hole=(x,y,r,s=1)=>{const g=n.createRadialGradient(x*T,y*T,0,x*T,y*T,r*T);g.addColorStop(0,`rgba(0,0,0,${s})`);g.addColorStop(.55,`rgba(0,0,0,${s*.75})`);g.addColorStop(1,'rgba(0,0,0,0)');n.fillStyle=g;n.fillRect((x-r)*T,(y-r)*T,r*2*T,r*2*T)};
- for(const p of S.players)if(p.alive)hole(p.x,p.y,2.3+Math.sin(now*9+p.id)*.06);
- for(const b of S.bombs)hole(b.x+b.vx*b.off+.5,b.y+b.vy*b.off+.5,1.3+(1-b.t/FUSE)*.6);
- for(const f of S.flames)hole(f.x+.5,f.y+.5,1.6);
- for(const p of S.pows)hole(p.x+.5,p.y+.5,.9,.7);
- for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++)if((x===0||y===0||x===COLS-1||y===ROWS-1)&&(x+y)%3===0)hole(x+.5,y+.4,1.3,.8);
- n.globalCompositeOperation='source-over';ctx.drawImage(nightC,0,0,COLS*T,ROWS*T)}
 function bigText(t,s,col,dy=0){if(!t)return;ctx.save();ctx.translate(COLS*T/2,ROWS*T/2+dy*T);ctx.scale(s,s);ctx.font='96px "Lilita One",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
  ctx.lineWidth=14;ctx.strokeStyle='#0c2427';ctx.strokeText(t,0,0);ctx.fillStyle='#b8341f';ctx.fillText(t,0,6);ctx.fillStyle=col;ctx.fillText(t,0,0);ctx.restore()}
 
