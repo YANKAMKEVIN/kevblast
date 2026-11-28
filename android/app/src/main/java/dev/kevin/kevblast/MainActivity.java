@@ -1,6 +1,7 @@
 package dev.kevin.kevblast;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.WindowManager;
 import androidx.core.view.WindowCompat;
@@ -42,7 +43,10 @@ public class MainActivity extends BridgeActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled()) getOnBackPressedDispatcher().onBackPressed();
+            if (event.getAction() == KeyEvent.ACTION_UP && !event.isCanceled()) {
+                Log.d("KEVBLAST", "touche retour reçue, rappels actifs : " + getOnBackPressedDispatcher().hasEnabledCallbacks());
+                getOnBackPressedDispatcher().onBackPressed();
+            }
             return true;
         }
         return super.dispatchKeyEvent(event);

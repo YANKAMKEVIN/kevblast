@@ -51,6 +51,13 @@ async function tapOn(page, sel, holdMs = 0) {
   return p.ok;
 }
 
+/** Diagnostic d'un échec : fenêtre qui a le focus et dernières lignes utiles du journal. @param {string} what */
+async function diag(what) {
+  const focus = (await sh('dumpsys window | grep -E "mCurrentFocus|mFocusedApp" | head -2')).trim().replace(/\s+/g, ' ');
+  const log = (await sh('logcat -d -v time')).split('\n').filter(l => /KEVBLAST|AppPlugin|Firing change|backButton|ANR|not responding|InputDispatcher.*(drop|Drop|focus)/i.test(l)).slice(-12);
+  console.log(`      ${what}\n      focus : ${focus}\n${log.map(l => '      | ' + l.trim()).join('\n')}`);
+}
+
 try {
   await device.installApk(readFileSync(APK));
   await sh(`pm clear ${PKG}`);
@@ -104,7 +111,7 @@ try {
   console.log(`      état avant retour : ${JSON.stringify(await state())}`);
   await sh('input keyevent KEYCODE_BACK');
   if (await until(page, 'retour en partie : pause', () => window.__kev.S.paused && !!document.getElementById('resume'), 8000)) check(true, 'retour en partie : pause (l\'appli ne se ferme pas)');
-  else console.log(`      état après retour : ${JSON.stringify(await state())} ; journal : ${(await sh('logcat -d -s Capacitor/Console:* Capacitor/AppPlugin:* Capacitor:*')).split('\n').filter(l => /retour|backButton|App/.test(l)).slice(-5).join(' | ')}`);
+  else await diag(`état après retour : ${JSON.stringify(await state())}`);
   await shot('3-pause');
   await sh('input keyevent KEYCODE_BACK');
   if (await until(page, 'retour en pause : reprise', () => !window.__kev.S.paused, 8000)) check(true, 'retour en pause : la partie reprend');
@@ -115,7 +122,7 @@ try {
   await sh(`am start -W -n ${PKG}/.MainActivity`);
   await page.waitForFunction(() => window.__kev.S.paused, null, { timeout: 10000 }).catch(() => {});
   const bg = await state();
-  check(bg.paused && bg.mode !== 'menu', `après un passage en arrière-plan : partie conservée, en pause (${JSON.stringify(bg)})`);
+  if (!check(bg.paused && bg.mode !== 'menu', `après un passage en arrière-plan : partie conservée, en pause (${JSON.stringify(bg)})`)) await diag('après accueil');
 
   // Paysage (Galaxy S24 tenu à l'horizontale)
   await sh('settings put system user_rotation 1; wm user-rotation lock 1');
@@ -153,7 +160,7 @@ try {
   await sh('input keyevent KEYCODE_BACK');
   await sleep(2000);
   const top = await sh('dumpsys activity activities | grep -E "topResumedActivity|ResumedActivity" | head -3');
-  check(!top.includes(PKG), 'retour depuis le menu : l\'appli se ferme');
+  if (!check(!top.includes(PKG), 'retour depuis le menu : l\'appli se ferme')) await diag('retour au menu');
 
   const log = await sh('logcat -d');
   const crash = log.split('\n').filter(l => /FATAL EXCEPTION|AndroidRuntime.*dev\.kevin/.test(l));
