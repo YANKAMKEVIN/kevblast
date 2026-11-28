@@ -104,7 +104,7 @@ try {
   console.log(`      état avant retour : ${JSON.stringify(await state())}`);
   await sh('input keyevent KEYCODE_BACK');
   if (await until(page, 'retour en partie : pause', () => window.__kev.S.paused && !!document.getElementById('resume'), 8000)) check(true, 'retour en partie : pause (l\'appli ne se ferme pas)');
-  else console.log(`      état après retour : ${JSON.stringify(await state())}`);
+  else console.log(`      état après retour : ${JSON.stringify(await state())} ; journal : ${(await sh('logcat -d -s Capacitor/Console:* Capacitor/AppPlugin:* Capacitor:*')).split('\n').filter(l => /retour|backButton|App/.test(l)).slice(-5).join(' | ')}`);
   await shot('3-pause');
   await sh('input keyevent KEYCODE_BACK');
   if (await until(page, 'retour en pause : reprise', () => !window.__kev.S.paused, 8000)) check(true, 'retour en pause : la partie reprend');
@@ -119,12 +119,12 @@ try {
 
   // Paysage (Galaxy S24 tenu à l'horizontale)
   await sh('settings put system user_rotation 1');
-  await page.waitForFunction(() => innerWidth > innerHeight, null, { timeout: 10000 }).catch(() => {});
-  await sleep(1000);
+  await page.waitForFunction(() => innerWidth > innerHeight, null, { timeout: 20000 }).catch(() => {});
+  await sleep(2000);
   const vis = (/** @type {string[]} */ ids) => page.evaluate((/** @type {string[]} */ ids) => ids.every(id => { const el = document.getElementById(id); if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.left >= -1 && r.right <= innerWidth + 1 && r.top >= -1 && r.bottom <= innerHeight + 1; }), ids);
-  const land = await page.evaluate(() => ({ landscape: innerWidth > innerHeight, overflow: document.documentElement.scrollWidth > innerWidth + 1 }));
-  check(land.landscape && !land.overflow && await vis(['resume']), 'paysage : mise en page adaptée, bouton « Reprendre » à l\'écran');
-  if (await page.$('#resume')) await page.click('#resume');
+  const land = await page.evaluate(() => { const r = document.getElementById('resume')?.getBoundingClientRect(); return { w: innerWidth, h: innerHeight, landscape: innerWidth > innerHeight, overflow: document.documentElement.scrollWidth > innerWidth + 1, resume: r ? [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)] : null, paused: window.__kev.S.paused }; });
+  check(land.landscape && !land.overflow && await vis(['resume']), `paysage : mise en page adaptée, bouton « Reprendre » à l'écran (${JSON.stringify(land)})`);
+  if (await page.locator('#resume').isVisible().catch(() => false)) await page.click('#resume', { timeout: 5000 }).catch(() => {});
   await sleep(800);
   check(await vis(['pad', 'tb', 'cv']), 'paysage : arène, joystick et BOUM visibles en entier');
   await shot('4-paysage');
@@ -144,12 +144,12 @@ try {
   for (let i = 0; i < 60; i++) {
     const st = await state();
     if (st.mode === 'menu' || st.mode === 'demo') break;
-    if (await page.$('#quit')) await page.click('#quit');
-    else if (await page.$('#tomenu')) await page.click('#tomenu');
+    if (await page.locator('#quit').isVisible().catch(() => false)) await page.click('#quit', { timeout: 3000 }).catch(() => {});
+    else if (await page.locator('#tomenu').isVisible().catch(() => false)) await page.click('#tomenu', { timeout: 3000 }).catch(() => {});
     else if ((st.mode === 'play' || st.mode === 'countdown') && !st.paused) await sh('input keyevent KEYCODE_BACK');
     await sleep(1000);
   }
-  check(!!await page.$('#play'), 'retour au menu depuis la partie');
+  check(await page.locator('#play').isVisible().catch(() => false), 'retour au menu depuis la partie');
   await sh('input keyevent KEYCODE_BACK');
   await sleep(2000);
   const top = await sh('dumpsys activity activities | grep -E "topResumedActivity|ResumedActivity" | head -3');

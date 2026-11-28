@@ -39,10 +39,13 @@ export function initNatif(ui) {
   const C = capacitor();
   if (!C) return;
   document.documentElement.classList.add('natif');
-  const App = (C.Plugins && C.Plugins.App) || (typeof C.registerPlugin === 'function' ? C.registerPlugin('App') : null);
+  // Toujours passer par registerPlugin : il renvoie le mandataire qui parle au plugin natif
+  // (un éventuel Capacitor.Plugins.App hérité n'enregistre pas les écouteurs).
+  const App = typeof C.registerPlugin === 'function' ? C.registerPlugin('App') : C.Plugins && C.Plugins.App;
   if (App && typeof App.addListener === 'function') {
     App.addListener('backButton', () => {
       const a = backAction(S.mode, S.paused);
+      console.info(`KEVBLAST retour : ${a}`);
       if (a === 'pause' || a === 'resume') ui.togglePause();
       else if (a === 'menu') ui.showMenu();
       else if (a === 'exit') App.exitApp();
