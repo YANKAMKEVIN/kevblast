@@ -1,0 +1,15 @@
+{
+  "appId": "dev.kevin.kevblast",
+  "appName": "KEVBLAST",
+  "webDir": "mobile/www",
+  "backgroundColor": "#0c2427",
+  "loggingBehavior": "debug",
+  "android": {
+    "backgroundColor": "#0c2427",
+    "allowMixedContent": false,
+    "captureInput": false
+  },
+  "plugins": {
+    "SystemBars": { "insetsHandling": "disable", "hidden": true }
+  }
+}

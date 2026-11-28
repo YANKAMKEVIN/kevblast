@@ -7,15 +7,19 @@ import { S } from './state.js';
 let musicTimer = 0, step = 0;
 export const music = { on: true };
 
-/** Crée le contexte audio (au premier geste du joueur). */
-export function audio() {
-  if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+/** Crée le contexte audio (au premier geste du joueur).
+ * @param {boolean} [onlyResume] relance un contexte déjà créé sans en créer (retour au premier plan) */
+export function audio(onlyResume = false) {
+  if (AC) { if (AC.state === 'suspended') AC.resume().catch(() => {}); return; }
+  if (onlyResume) return;
   try {
     const W = /** @type {any} */ (window);
     const ac = /** @type {AudioContext} */ (new (W.AudioContext || W.webkitAudioContext)());
     master = ac.createGain(); master.gain.value = .55; master.connect(ac.destination); AC = ac;
   } catch (e) { AC = null; }
 }
+/** Coupe le son (jeu passé en arrière-plan). */
+export function suspendAudio() { if (AC && AC.state === 'running') AC.suspend().catch(() => {}); }
 function quiet() { return !AC || S.mode === 'demo'; }
 /** @param {number} f @param {number} d @param {OscillatorType} [type] @param {number} [v] @param {number|null} [f2] @param {number} [when] */
 function tone(f,d,type='square',v=.12,f2=null,when=0){if(!AC)return;const t=AC.currentTime+when,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(/** @type {GainNode} */ (master));o.start(t);o.stop(t+d+.02)}

@@ -7,6 +7,7 @@ import { initRender, draw, setNow } from './render.js';
 import { initInput, pollInputs, ui } from './input.js';
 import { loadArt } from './art.js';
 import { initUi, showMenu, togglePause, toggleMusic, updateClock, buildHud, timing } from './ui.js';
+import { initNatif } from './natif.js';
 
 const params = new URLSearchParams(location.search);
 /** ?turbo=N : N pas de simulation par image (robot de la CI). ?graine=N : partie reproductible. */
@@ -18,6 +19,7 @@ initRender(/** @type {HTMLCanvasElement} */ (document.getElementById('cv')));
 ui.togglePause = togglePause; ui.toggleMusic = toggleMusic;
 initInput();
 initUi();
+initNatif({ togglePause, showMenu });
 
 let last = performance.now();
 /** @param {number} t */
