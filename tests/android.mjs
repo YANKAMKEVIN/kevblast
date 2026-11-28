@@ -14,7 +14,7 @@ const { appId: PKG } = JSON.parse(readFileSync(`${ROOT}capacitor.config.json`, '
 const { version: VERSION } = JSON.parse(readFileSync(`${ROOT}package.json`, 'utf8'));
 const APK = process.argv[2] || `${ROOT}android/app/build/outputs/apk/debug/app-debug.apk`;
 const OUT = process.env.SMOKE_SHOTS || 'test-results';
-const MIN_FPS = Number(process.env.ANDROID_MIN_FPS || 10); // émulateur logiciel de la CI : lent ; le S24 tient 60
+const MIN_FPS = Number(process.env.ANDROID_MIN_FPS || 4); // émulateur logiciel de la CI : lent ; le S24 tient 60
 mkdirSync(OUT, { recursive: true });
 
 const sleep = (/** @type {number} */ ms) => new Promise(r => setTimeout(r, ms));
@@ -94,52 +94,64 @@ try {
   }
   const after = await me();
   check(Math.hypot(after.x - before.x, after.y - before.y) > .3, 'le joystick déplace le héros');
-  const bombs0 = await page.evaluate(() => window.__kev.S.bombs.length);
-  await tapOn(page, '#tb', 120);
-  check(await page.waitForFunction(n => window.__kev.S.bombs.length > n || window.__kev.S.mode !== 'play', bombs0, { timeout: 8000 }).then(() => true, () => false), 'le bouton BOUM pose un pétard');
-  await shot('2-partie');
+  const state = () => page.evaluate(() => { const S = window.__kev.S, p = S.players.find(q => q.human === 0); return { mode: S.mode, paused: S.paused, alive: !!p && p.alive }; });
 
   // Mesure de la cadence pendant 3 s de partie
   const fps = await page.evaluate(() => new Promise(res => { let n = 0; const t = performance.now(); const f = () => { n++; if (performance.now() - t < 3000) requestAnimationFrame(f); else res(n / 3); }; requestAnimationFrame(f); }));
-  check(fps >= MIN_FPS, `cadence en partie : ${fps.toFixed(0)} images/s (minimum ${MIN_FPS})`);
+  check(fps >= MIN_FPS, `cadence en partie : ${fps.toFixed(0)} images/s (minimum ${MIN_FPS} sur l'émulateur sans carte graphique)`);
 
-  // Bouton retour du téléphone
+  // Bouton retour du téléphone (avant de poser un pétard : le héros est encore en vie)
+  console.log(`      état avant retour : ${JSON.stringify(await state())}`);
   await sh('input keyevent KEYCODE_BACK');
-  await until(page, 'retour en partie : pause', () => window.__kev.S.paused && !!document.getElementById('resume'), 5000) && check(true, 'retour en partie : pause (l\'appli ne se ferme pas)');
+  if (await until(page, 'retour en partie : pause', () => window.__kev.S.paused && !!document.getElementById('resume'), 8000)) check(true, 'retour en partie : pause (l\'appli ne se ferme pas)');
+  else console.log(`      état après retour : ${JSON.stringify(await state())}`);
   await shot('3-pause');
   await sh('input keyevent KEYCODE_BACK');
-  await until(page, 'retour en pause : reprise', () => !window.__kev.S.paused, 5000) && check(true, 'retour en pause : la partie reprend');
+  if (await until(page, 'retour en pause : reprise', () => !window.__kev.S.paused, 8000)) check(true, 'retour en pause : la partie reprend');
 
   // Arrière-plan (bouton accueil) puis retour dans l'appli
   await sh('input keyevent KEYCODE_HOME');
-  await sleep(1500);
+  await sleep(2000);
   await sh(`am start -W -n ${PKG}/.MainActivity`);
-  await sleep(1000);
-  check(await page.evaluate(() => window.__kev.S.paused && window.__kev.S.mode !== 'menu'), 'après un passage en arrière-plan : partie conservée, en pause');
+  await sleep(1500);
+  const bg = await state();
+  check(bg.paused && bg.mode !== 'menu', `après un passage en arrière-plan : partie conservée, en pause (${JSON.stringify(bg)})`);
 
   // Paysage (Galaxy S24 tenu à l'horizontale)
   await sh('settings put system user_rotation 1');
-  await page.waitForFunction(() => innerWidth > innerHeight, null, { timeout: 8000 }).catch(() => {});
+  await page.waitForFunction(() => innerWidth > innerHeight, null, { timeout: 10000 }).catch(() => {});
+  await sleep(1000);
+  const vis = (/** @type {string[]} */ ids) => page.evaluate((/** @type {string[]} */ ids) => ids.every(id => { const el = document.getElementById(id); if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.left >= -1 && r.right <= innerWidth + 1 && r.top >= -1 && r.bottom <= innerHeight + 1; }), ids);
+  const land = await page.evaluate(() => ({ landscape: innerWidth > innerHeight, overflow: document.documentElement.scrollWidth > innerWidth + 1 }));
+  check(land.landscape && !land.overflow && await vis(['resume']), 'paysage : mise en page adaptée, bouton « Reprendre » à l\'écran');
+  if (await page.$('#resume')) await page.click('#resume');
   await sleep(800);
-  const land = await page.evaluate(() => {
-    const vis = (/** @type {string} */ id) => { const r = document.getElementById(id).getBoundingClientRect(); return r.width > 0 && r.left >= -1 && r.right <= innerWidth + 1 && r.top >= -1 && r.bottom <= innerHeight + 1; };
-    return { landscape: innerWidth > innerHeight, overflow: document.documentElement.scrollWidth > innerWidth + 1, resume: vis('resume') };
-  });
-  check(land.landscape && !land.overflow && land.resume, 'paysage : mise en page adaptée, bouton « Reprendre » à l\'écran');
-  await page.click('#resume');
-  await sleep(600);
-  check(await page.evaluate(() => { const vis = (/** @type {string} */ id) => { const r = document.getElementById(id).getBoundingClientRect(); return r.width > 0 && r.right <= innerWidth + 1 && r.bottom <= innerHeight + 1; }; return vis('pad') && vis('tb') && vis('cv'); }), 'paysage : arène, joystick et BOUM visibles en entier');
+  check(await vis(['pad', 'tb', 'cv']), 'paysage : arène, joystick et BOUM visibles en entier');
   await shot('4-paysage');
   await sh('settings put system user_rotation 0');
-  await sleep(800);
+  await page.waitForFunction(() => innerWidth < innerHeight, null, { timeout: 10000 }).catch(() => {});
+  await sleep(1000);
 
-  // Quitter la partie puis sortir de l'appli par le bouton retour
+  // Bouton BOUM : un vrai pétard posé au doigt
+  if ((await state()).mode === 'play') {
+    const bombs0 = await page.evaluate(() => window.__kev.S.bombs.length);
+    await tapOn(page, '#tb', 150);
+    check(await page.waitForFunction(n => window.__kev.S.bombs.length > n, bombs0, { timeout: 8000 }).then(() => true, () => false), 'le bouton BOUM pose un pétard');
+    await shot('2-partie');
+  } else check(false, `le bouton BOUM pose un pétard (partie plus en cours : ${JSON.stringify(await state())})`);
+
+  // Revenir au menu (le héros a peut-être sauté sur son pétard), puis sortir par le bouton retour
+  for (let i = 0; i < 60; i++) {
+    const st = await state();
+    if (st.mode === 'menu' || st.mode === 'demo') break;
+    if (await page.$('#quit')) await page.click('#quit');
+    else if (await page.$('#tomenu')) await page.click('#tomenu');
+    else if ((st.mode === 'play' || st.mode === 'countdown') && !st.paused) await sh('input keyevent KEYCODE_BACK');
+    await sleep(1000);
+  }
+  check(!!await page.$('#play'), 'retour au menu depuis la partie');
   await sh('input keyevent KEYCODE_BACK');
-  await until(page, 'pause avant de quitter', () => !!document.getElementById('quit'), 5000);
-  await page.click('#quit');
-  await until(page, 'retour au menu', () => !!document.getElementById('play'), 5000);
-  await sh('input keyevent KEYCODE_BACK');
-  await sleep(1500);
+  await sleep(2000);
   const top = await sh('dumpsys activity activities | grep -E "topResumedActivity|ResumedActivity" | head -3');
   check(!top.includes(PKG), 'retour depuis le menu : l\'appli se ferme');
 
