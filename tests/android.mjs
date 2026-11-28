@@ -54,7 +54,7 @@ async function tapOn(page, sel, holdMs = 0) {
 /** Diagnostic d'un échec : fenêtre qui a le focus et dernières lignes utiles du journal. @param {string} what */
 async function diag(what) {
   const focus = (await sh('dumpsys window | grep -E "mCurrentFocus|mFocusedApp" | head -2')).trim().replace(/\s+/g, ' ');
-  const log = (await sh('logcat -d -v time')).split('\n').filter(l => /KEVBLAST|Capacitor\/AppPlugin|Capacitor\/Console|Firing change|backButton|ANR in|not responding|AndroidRuntime|ActivityTaskManager.*(kevblast|finish)|kevblast.*(died|Kill)|InputDispatcher.*(drop|focus)/i.test(l)).slice(-25);
+  const log = (await sh('logcat -d -v time')).split('\n').filter(l => !/AppsFilter|ImeTracker|InputMethod/.test(l)).filter(l => /KEVBLAST|Capacitor\/AppPlugin|Capacitor\/Console|Firing change|backButton|ANR in|not responding|AndroidRuntime|ActivityTaskManager.*(kevblast|finish)|kevblast.*(died|Kill)|InputDispatcher.*(drop|focus)/i.test(l)).slice(-25);
   console.log(`      ${what}\n      focus : ${focus}\n${log.map(l => '      | ' + l.trim()).join('\n')}`);
 }
 
@@ -66,6 +66,9 @@ try {
   // par appli : tant qu'elle est là, elle prend le focus et la touche retour (sur un vrai
   // téléphone on la ferme d'un toucher). On la marque comme déjà vue.
   await sh('settings put secure immersive_mode_confirmations confirmed');
+  // L'émulateur logiciel de la CI est si lent que l'écran d'accueil d'Android finit parfois
+  // en « Application ne répond pas » : la fenêtre d'alerte vole alors le focus et les touches.
+  await sh('settings put global hide_error_dialogs 1');
   await sh('logcat -c');
   const t0 = Date.now();
   await sh(`am start -W -n ${PKG}/.MainActivity`);
