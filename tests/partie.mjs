@@ -7,7 +7,8 @@ import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import { createServer, connect } from 'node:net';
 import { mkdirSync } from 'node:fs';
-import { ART_FILES } from '../src/art.js';
+import { ART_FILES, ARENA_PARTS, PAINTED_ARENAS } from '../src/art.js';
+import { THEMES } from '../src/config.js';
 
 const PORT = await new Promise(res => { const s = createServer().listen(0, '127.0.0.1', () => { const p = s.address().port; s.close(() => res(p)); }); });
 const URL = `http://127.0.0.1:${PORT}/index.html?turbo=20&graine=3`;
@@ -43,6 +44,16 @@ try {
   await page.click('#play');
   check(await page.locator('#ov').isHidden(), 'la partie démarre');
   await page.screenshot({ path: `${OUT}/partie-1-debut.png` });
+  // arènes peintes : l'arène jouée puis les autres se chargent, le décor de fond suit l'arène
+  if (PAINTED_ARENAS.length) {
+    await page.waitForFunction(n => Object.values(window.__kev.arenes || {}).filter(v => v > 0).length >= 1, null, { timeout: 15000 });
+    const id = await page.evaluate(() => { const S = window.__kev.S; return S.arena; });
+    const th = THEMES[id];
+    if (PAINTED_ARENAS.includes(th.id)) {
+      check(await page.evaluate(i => window.__kev.arenes[i], th.id) === ARENA_PARTS.length, `les ${ARENA_PARTS.length} visuels de l'arène « ${th.id} » sont chargés`);
+      check((await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--fond'))).includes(`fond_${th.id}`), 'décor peint de l\'arène derrière le plateau');
+    }
+  }
 
   const t0 = Date.now();
   await page.waitForSelector('#again', { timeout: 240000 });

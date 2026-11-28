@@ -19,9 +19,9 @@ d = json.load(open(sys.argv[1])); im = next(i for i in d["images"] if i["fichier
 w, h = im["taille"].split("x")
 from fractions import Fraction
 r = Fraction(int(w), int(h))
-fmt = "carré" if w == h else f"paysage {r.numerator}:{r.denominator}"
+fmt = "carré" if w == h else (f"paysage {r.numerator}:{r.denominator}" if int(w) > int(h) else f"portrait {r.numerator}:{r.denominator}")
 print("Utilise ton outil de génération d'images pour produire UNE image. N'écris pas de code et ne lance aucune commande. Quand l'image est produite, réponds seulement : FAIT.\n")
-if im.get("reference"): print("L'image jointe est la référence de design des personnages : reprends fidèlement leurs formes, couleurs, accessoires et visages.\n")
+if im.get("reference"): print(im.get("reference_texte", "L'image jointe est la référence de design des personnages : reprends fidèlement leurs formes, couleurs, accessoires et visages.") + "\n")
 print(d["style"] + "\n")
 if im.get("heros"): print(d["style_heros"] + "\n")
 print(im["prompt"] + "\n")

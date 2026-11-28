@@ -1,7 +1,7 @@
 // @ts-check
 /** Constantes et données du jeu : aucune logique ici. */
 
-export const VERSION = '1.3.0';
+export const VERSION = '1.4.0';
 
 export const COLS = 15, ROWS = 13, T = 48, FUSE = 2.5, FLAME = 0.55, ROUND = 120;
 
@@ -33,14 +33,31 @@ export const SPAWN = [[1, 1], [13, 11], [13, 1], [1, 11]];
 export const ARENAS = ['Place du Marché', 'Jardin des Lanternes', 'Quai des Fusées', 'Nuit des Lanternes', 'Lac Gelé'];
 
 const TEAL = { hard: ['#3fb3a3', '#2a8c80', '#1b5e58'], border: ['#2a7a72', '#1a5853', '#0d3b3a'] };
-/** @typedef {{floor:string[],hard:string[],border:string[],night?:boolean,snow?:boolean}} Theme */
+/**
+ * Décor d'une arène du « Grand Festival » : chaque arène est un lieu de la fête à une heure de la nuit.
+ * - `id` : suffixe des visuels peints art/arenes/{sol,pilier,caisse,borne,fond}_<id>.webp ;
+ * - `floor`, `hard`, `border` : couleurs du dessin de secours (tant que les visuels ne sont pas chargés) ;
+ * - `dark` (0 à 1) et `shade` : obscurité ambiante et sa teinte, percée par les lumières ;
+ * - `glow` : couleur des lanternes ; `lamps` : les piliers portent une lanterne allumée ;
+ * - `garland` : guirlandes entre les bornes de la clôture (forme et couleurs) ;
+ * - `fx` : ambiance animée (purement décorative, ne touche pas au hasard de la partie) ;
+ * - `night` : nuit noire, la visibilité devient un enjeu de jeu.
+ * @typedef {'confetti'|'petales'|'braises'|'lanternes'|'neige'} Fx
+ * @typedef {{id:string,floor:string[],hard:string[],border:string[],night?:boolean,
+ *  dark:number,shade:string,glow:string,lamps:boolean,garland:{kind:'fanions'|'lampions'|'ampoules',cols:string[]},fx:Fx,sky:string[]}} Theme
+ */
 /** @type {Theme[]} */
 export const THEMES = [
-  { floor: ['#f3d7a0', '#ecca8a', '#d9ae6a'], ...TEAL },
-  { floor: ['#cfe3b0', '#c2d99c', '#9fbf78'], ...TEAL },
-  { floor: ['#f0c9b4', '#e7b79e', '#cf9577'], ...TEAL },
-  { floor: ['#3a4f78', '#32466c', '#22305066'], hard: ['#5b7fc4', '#3f5f9c', '#26406e'], border: ['#33497a', '#24365c', '#141f38'], night: true },
-  { floor: ['#e8f6ff', '#d6edfb', '#a8cfe6'], hard: ['#b4e8fa', '#82c8e6', '#4f97b8'], border: ['#76b6d6', '#4f92b3', '#2f6886'], snow: true },
+  { id: 'marche', floor: ['#f3d7a0', '#ecca8a', '#d9ae6a'], ...TEAL, dark: .2, shade: '#3a1238', glow: '#ffb347', lamps: true,
+    garland: { kind: 'fanions', cols: ['#ff5a3c', '#fff1d6', '#ffc02e', '#14b8a6'] }, fx: 'confetti', sky: ['#ff9a5a', '#6a2a6e'] },
+  { id: 'jardin', floor: ['#cfe3b0', '#c2d99c', '#9fbf78'], ...TEAL, dark: .4, shade: '#0b1640', glow: '#ffd27a', lamps: true,
+    garland: { kind: 'lampions', cols: ['#ffd27a', '#ffb0a0', '#fff1d6'] }, fx: 'petales', sky: ['#3a5aa8', '#0b1640'] },
+  { id: 'quai', floor: ['#f0c9b4', '#e7b79e', '#cf9577'], ...TEAL, dark: .52, shade: '#03122a', glow: '#ffc46a', lamps: false,
+    garland: { kind: 'ampoules', cols: ['#ffe27a', '#9ff6ff', '#ff8a5a'] }, fx: 'braises', sky: ['#123a6a', '#03122a'] },
+  { id: 'lanternes', floor: ['#3a4f78', '#32466c', '#22305066'], hard: ['#5b7fc4', '#3f5f9c', '#26406e'], border: ['#33497a', '#24365c', '#141f38'], night: true,
+    dark: .74, shade: '#060a1e', glow: '#ff7a3a', lamps: true, garland: { kind: 'lampions', cols: ['#ff3b2f', '#ffb020', '#ff3b2f'] }, fx: 'lanternes', sky: ['#2a1450', '#060a1e'] },
+  { id: 'lac', floor: ['#e8f6ff', '#d6edfb', '#a8cfe6'], hard: ['#b4e8fa', '#82c8e6', '#4f97b8'], border: ['#76b6d6', '#4f92b3', '#2f6886'],
+    dark: .42, shade: '#0a1446', glow: '#ffd98a', lamps: true, garland: { kind: 'ampoules', cols: ['#ffd98a', '#9ff6ff', '#c9b8ff'] }, fx: 'neige', sky: ['#1a6a7a', '#0a1446'] },
 ];
 
 /** @type {Record<string,string>} */

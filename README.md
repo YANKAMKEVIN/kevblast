@@ -42,14 +42,28 @@ Dans l'arène, chaque héros a trois vues peintes (face, dos, profil, en miroir 
 ## Visuels
 L'affiche du menu, le sol, les murs, les caisses, les héros (portrait, pose de victoire, trois vues d'arène) et les 7 bonus sont peints avec Codex (`art/`, WebP, 31 images). Les prompts sont dans `tools/art/prompts.json` ; les images de héros joignent la planche de référence `tools/art/references/petards_vivants.jpg` pour garder le même design partout. `tools/art/generer.sh` les génère et `tools/art/finir.py` redimensionne, détoure le fond magenta, découpe la fiche de modèle de chaque héros en trois vues et exporte en WebP. Le jeu reste jouable si une image manque : le dessin procédural d'origine prend le relais (`src/art.js`).
 
+Les arènes ont leurs propres prompts (`tools/art/arenes.json`, 30 images) : un concept par arène (`tools/art/concepts/`), joint ensuite à chaque visuel de cette arène pour garder ses matières et sa lumière, puis son sol, son pilier, sa caisse, sa borne et son décor de fond (`art/arenes/`). `tools/art/rogner.py` recadre les objets détourés au plus juste. Une arène n'est chargée que si elle figure dans `PAINTED_ARENAS` (`src/art.js`), ce que vérifient les tests.
+
 ## Les bonus
 
 Pétard en plus, portée, vitesse, bouclier, coup de pied (pousse les bombes), étoile (flamme max).
 Attention à la spirale violette : une malédiction (touches inversées, escargot, pétards en folie, mèche courte) que tu peux refiler en touchant un adversaire.
 
-## Les arènes
+## Les arènes : le Grand Festival
 
-Place du Marché, Jardin des Lanternes, Quai des Fusées, Nuit des Lanternes (dans le noir) et Lac Gelé (sous la neige). Après 2 minutes, la Finale referme l'arène en spirale.
+Chaque arène est un lieu de la fête, à une heure différente de la nuit :
+
+| Arène | Ambiance | Piliers | Caisses |
+|---|---|---|---|
+| Place du Marché | crépuscule doré, étals rayés, fanions, confettis | bornes-fontaines à lanterne | caisses de pétards |
+| Jardin des Lanternes | heure bleue, cerisiers, lucioles et pétales | lanternes de pierre moussues | paniers de fleurs et de fusées |
+| Quai des Fusées | nuit au port, eau qui scintille, braises | bittes d'amarrage | tonneaux de poudre et fusées bâchées |
+| Nuit des Lanternes | minuit dans une cour de temple : on n'y voit que ce qui brille | grandes lanternes laquées | piles de lampions |
+| Lac Gelé | aurore boréale sur la glace, neige | blocs de glace à lanterne | caisses-cadeaux enneigées |
+
+Le sol peint est calé sur les 13 x 11 cases. Piliers, caisses et bornes sont peints en trois quarts, comme les héros, et dessinés rangée par rangée pour que ce qui est devant passe devant. Une clôture de bornes reliées par des guirlandes (fanions, lampions ou ampoules) qui se balancent fait le tour du plateau, et le décor peint du lieu s'étend derrière lui. Les lanternes, les mèches et les flammes éclairent vraiment l'arène (`src/lumiere.js`), et chaque lieu a son ambiance animée (`src/decor.js`). Le décor n'utilise jamais le hasard de la partie : une graine rejoue toujours la même partie. Après 2 minutes, la Finale referme l'arène en spirale.
+
+Côté téléphone : seuls les visuels de l'arène jouée sont attendus (les autres arrivent en arrière-plan), les objets sont réduits une seule fois à leur taille d'affichage, les ombres et les bornes immobiles sont peintes dans le sol, la lumière est calculée au quart de la résolution, et si les images ralentissent durablement le jeu retire de lui-même les halos les plus coûteux.
 
 ## Technique
 
@@ -63,7 +77,9 @@ HTML, CSS et JavaScript sans dépendance ni étape de construction : dessin sur 
 | `src/ai.js` | Bots : carte du danger, recherche de chemin, choix de la cible (sans DOM) |
 | `src/rng.js` | Hasard reproductible (même graine, même partie) |
 | `src/save.js` | Sauvegarde versionnée |
-| `src/render.js` | Dessin de l'arène |
+| `src/render.js` | Dessin de l'arène (ordre de profondeur, pétards, flammes, héros) |
+| `src/decor.js` | Décor des arènes : sol, piliers, caisses, clôture et guirlandes, fond peint, ambiance animée |
+| `src/lumiere.js` | Éclairage : obscurité teintée et halos des lanternes, mèches et flammes |
 | `src/input.js` | Clavier, manettes, commandes tactiles |
 | `src/ui.js` | Menu, barre des joueurs, écrans de manche, de victoire et de pause |
 | `src/audio.js` | Sons et musique |

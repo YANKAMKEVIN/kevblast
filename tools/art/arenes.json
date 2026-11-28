@@ -1,0 +1,226 @@
+{
+ "style": "Direction artistique « Grand Festival des Pétards » : peinture numérique de jeu vidéo haut de gamme, façon diorama miniature peint à la main, formes rondes et généreuses, matières bien lisibles (bois, pierre, papier, laque, glace), lumière chaude de lanternes, reflets colorés et ombres douces violettes. Palette du jeu : corail #ff5a3c, turquoise #14b8a6, jaune soleil #ffc02e et violet #8b6cff, posés sur des fonds bleu nuit profonds. Aucun texte, aucune lettre, aucun logo, aucune signature, aucun filigrane, aucun personnage.",
+ "fond_detourage": "Objet seul, centré, entier, sur un fond uni magenta pur #FF00FF sans dégradé ni ombre portée sur le fond, pour être détouré ensuite. L'objet ne contient aucun magenta.",
+ "images": [
+  {
+   "fichier": "concept_marche",
+   "taille": "1536x1024",
+   "sortie": "../../tools/art/concepts/marche.webp",
+   "prompt": "Concept art d'un écran de jeu d'arène à bombes : Place du Marché, au crépuscule doré. Une arène rectangulaire vue de dessus en légère plongée (trois quarts), quadrillée de 13 cases sur 11, bordée d'une clôture de bornes reliées par des guirlandes lumineuses. Des piliers indestructibles une case sur deux en damier (une borne-fontaine en pierre blonde sculptée, base carrée, coiffée d'une lanterne en fer forgé allumée (lumière jaune chaude)), des caisses destructibles éparpillées (une caisse de pétards en bois clair, planches bien visibles, coins renforcés de métal, grande étiquette rouge avec une étincelle jaune, quelques fusées qui dépassent du couvercle), le sol : grands pavés ronds ocre et miel posés en éventail, quelques dalles plus claires, joints sombres, confettis colorés et pétales épars, traces de craie de marelle. L'arène occupe le centre de l'image ; tout autour, le décor : étals de marché à auvents rayés corail et crème, cageots de fruits, tonneaux, guirlandes de fanions et d'ampoules, façades de maisons à colombages, ciel orangé qui vire au violet. Lisibilité parfaite du quadrillage, rendu de jeu commercial magnifique."
+  },
+  {
+   "fichier": "concept_lanternes",
+   "taille": "1536x1024",
+   "sortie": "../../tools/art/concepts/lanternes.webp",
+   "prompt": "Concept art d'un écran de jeu d'arène à bombes : Nuit des Lanternes, minuit dans une cour de temple en fête. Une arène rectangulaire vue de dessus en légère plongée (trois quarts), quadrillée de 13 cases sur 11, bordée d'une clôture de bornes reliées par des guirlandes lumineuses. Des piliers indestructibles une case sur deux en damier (une grande lanterne de pierre laquée rouge et or, base carrée, toit recourbé, lumière orange vive à l'intérieur), des caisses destructibles éparpillées (une pile de trois lanternes de papier rouges et une boîte laquée de feux de Bengale, en un seul bloc compact), le sol : grandes dalles de pierre bleu nuit polies, filets dorés, motifs de vagues et de nuages gravés, reflets rouges et or des lanternes. L'arène occupe le centre de l'image ; tout autour, le décor : galeries de bois laqué rouge aux toits recourbés, lanternes de papier rouges et or suspendues, lanternes célestes qui s'envolent, fumée d'encens, ciel nocturne étoilé. Lisibilité parfaite du quadrillage, rendu de jeu commercial magnifique."
+  },
+  {
+   "fichier": "concept_jardin",
+   "taille": "1536x1024",
+   "sortie": "../../tools/art/concepts/jardin.webp",
+   "prompt": "Concept art d'un écran de jeu d'arène à bombes : Jardin des Lanternes, à l'heure bleue. Une arène rectangulaire vue de dessus en légère plongée (trois quarts), quadrillée de 13 cases sur 11, bordée d'une clôture de bornes reliées par des guirlandes lumineuses. Des piliers indestructibles une case sur deux en damier (une lanterne de pierre de jardin arrondie et moussue, base carrée, avec une flamme dorée qui brille dans sa petite fenêtre), des caisses destructibles éparpillées (un grand panier tressé en osier, plein de fleurs jaunes et blanches et de petites fusées colorées, un ruban turquoise), le sol : allées de gravier clair ratissé en vagues, grandes dalles de pierre moussues, touffes d'herbe tendre et de trèfle, pétales blancs et pêche portés par le vent. L'arène occupe le centre de l'image ; tout autour, le décor : haies taillées en boules, cerisiers en fleurs, bassin aux nénuphars, petits ponts de bois, lanternes de pierre allumées, lucioles, ciel bleu profond. Lisibilité parfaite du quadrillage, rendu de jeu commercial magnifique."
+  },
+  {
+   "fichier": "concept_quai",
+   "taille": "1536x1024",
+   "sortie": "../../tools/art/concepts/quai.webp",
+   "prompt": "Concept art d'un écran de jeu d'arène à bombes : Quai des Fusées, la nuit au port. Une arène rectangulaire vue de dessus en légère plongée (trois quarts), quadrillée de 13 cases sur 11, bordée d'une clôture de bornes reliées par des guirlandes lumineuses. Des piliers indestructibles une case sur deux en damier (une bitte d'amarrage en fonte peinte turquoise, base carrée boulonnée, avec un cordage épais enroulé autour), des caisses destructibles éparpillées (un tonneau de poudre cerclé de métal à côté d'une caisse de fusées couverte d'une bâche rouge, groupés en un seul bloc compact), le sol : larges planches de bois de quai patinées, plaques de métal rivetées, cordages enroulés à plat, petites flaques qui reflètent des lumières colorées. L'arène occupe le centre de l'image ; tout autour, le décor : eau sombre qui scintille, bateaux de pêche illuminés, grues portuaires, rampes de lancement de fusées géantes, phare, feux d'artifice au loin au-dessus de la mer. Lisibilité parfaite du quadrillage, rendu de jeu commercial magnifique."
+  },
+  {
+   "fichier": "concept_lac",
+   "taille": "1536x1024",
+   "sortie": "../../tools/art/concepts/lac.webp",
+   "prompt": "Concept art d'un écran de jeu d'arène à bombes : Lac Gelé, nuit d'aurore boréale. Une arène rectangulaire vue de dessus en légère plongée (trois quarts), quadrillée de 13 cases sur 11, bordée d'une clôture de bornes reliées par des guirlandes lumineuses. Des piliers indestructibles une case sur deux en damier (un bloc de glace taillé, base carrée, translucide bleu turquoise, avec une lanterne dorée allumée prise à l'intérieur), des caisses destructibles éparpillées (une caisse en bois couverte de neige, emballée comme un cadeau avec un ruban corail et un nœud, quelques pétards qui dépassent), le sol : glace bleue translucide avec fines fissures blanches et bulles prises dans la glace, plaques de neige poudreuse, reflets turquoise et violets de l'aurore. L'arène occupe le centre de l'image ; tout autour, le décor : sapins enneigés, chalets de bois avec guirlandes lumineuses, patineurs lointains en silhouette, aurore boréale turquoise et violette dans le ciel étoilé. Lisibilité parfaite du quadrillage, rendu de jeu commercial magnifique."
+  },
+  {
+   "fichier": "sol_marche",
+   "taille": "1440x1248",
+   "reference": "brut-arenes/concept_marche.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Sol de l'arène « Place du Marché, au crépuscule doré », vu strictement de dessus (caméra verticale), qui remplit toute l'image d'un bord à l'autre : grands pavés ronds ocre et miel posés en éventail, quelques dalles plus claires, joints sombres, confettis colorés et pétales épars, traces de craie de marelle. Aucun objet en relief, aucun pilier, aucune caisse, aucun mur, aucune clôture : seulement la surface du sol, plate. Lumière douce et assez uniforme, contraste modéré au centre pour que les personnages et les pièges restent très lisibles par-dessus ; plus de détails et de variations vers les bords."
+  },
+  {
+   "fichier": "pilier_marche",
+   "taille": "512x640",
+   "detourer": true,
+   "reference": "brut-arenes/concept_marche.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, base carrée qui occupe toute la largeur de l'objet, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : une borne-fontaine en pierre blonde sculptée, base carrée, coiffée d'une lanterne en fer forgé allumée (lumière jaune chaude)."
+  },
+  {
+   "fichier": "caisse_marche",
+   "taille": "512x576",
+   "detourer": true,
+   "reference": "brut-arenes/concept_marche.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, base carrée qui occupe toute la largeur de l'objet, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : une caisse de pétards en bois clair, planches bien visibles, coins renforcés de métal, grande étiquette rouge avec une étincelle jaune, quelques fusées qui dépassent du couvercle."
+  },
+  {
+   "fichier": "borne_marche",
+   "taille": "384x640",
+   "detourer": true,
+   "reference": "brut-arenes/concept_marche.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, silhouette fine et haute, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : un poteau de clôture en bois peint corail et crème, chapeau pointu, une petite lanterne accrochée."
+  },
+  {
+   "fichier": "fond_marche",
+   "taille": "1920x1080",
+   "reference": "brut-arenes/concept_marche.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Décor d'ambiance plein écran autour de l'arène « Place du Marché, au crépuscule doré », vu en légère plongée : étals de marché à auvents rayés corail et crème, cageots de fruits, tonneaux, guirlandes de fanions et d'ampoules, façades de maisons à colombages, ciel orangé qui vire au violet. Le centre de l'image est un grand espace sombre et calme (le plateau de jeu sera posé par-dessus) ; la richesse et la lumière sont sur les côtés, en haut et en bas. Profondeur, brume légère, rendu magnifique."
+  },
+  {
+   "fichier": "sol_lanternes",
+   "taille": "1440x1248",
+   "reference": "brut-arenes/concept_lanternes.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Sol de l'arène « Nuit des Lanternes, minuit dans une cour de temple en fête », vu strictement de dessus (caméra verticale), qui remplit toute l'image d'un bord à l'autre : grandes dalles de pierre bleu nuit polies, filets dorés, motifs de vagues et de nuages gravés, reflets rouges et or des lanternes. Aucun objet en relief, aucun pilier, aucune caisse, aucun mur, aucune clôture : seulement la surface du sol, plate. Lumière douce et assez uniforme, contraste modéré au centre pour que les personnages et les pièges restent très lisibles par-dessus ; plus de détails et de variations vers les bords."
+  },
+  {
+   "fichier": "pilier_lanternes",
+   "taille": "512x640",
+   "detourer": true,
+   "reference": "brut-arenes/concept_lanternes.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, base carrée qui occupe toute la largeur de l'objet, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : une grande lanterne de pierre laquée rouge et or, base carrée, toit recourbé, lumière orange vive à l'intérieur."
+  },
+  {
+   "fichier": "caisse_lanternes",
+   "taille": "512x576",
+   "detourer": true,
+   "reference": "brut-arenes/concept_lanternes.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, base carrée qui occupe toute la largeur de l'objet, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : une pile de trois lanternes de papier rouges et une boîte laquée de feux de Bengale, en un seul bloc compact."
+  },
+  {
+   "fichier": "borne_lanternes",
+   "taille": "384x640",
+   "detourer": true,
+   "reference": "brut-arenes/concept_lanternes.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, silhouette fine et haute, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : un poteau laqué rouge à chapeau doré, avec une lanterne de papier rouge allumée."
+  },
+  {
+   "fichier": "fond_lanternes",
+   "taille": "1920x1080",
+   "reference": "brut-arenes/concept_lanternes.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Décor d'ambiance plein écran autour de l'arène « Nuit des Lanternes, minuit dans une cour de temple en fête », vu en légère plongée : galeries de bois laqué rouge aux toits recourbés, lanternes de papier rouges et or suspendues, lanternes célestes qui s'envolent, fumée d'encens, ciel nocturne étoilé. Le centre de l'image est un grand espace sombre et calme (le plateau de jeu sera posé par-dessus) ; la richesse et la lumière sont sur les côtés, en haut et en bas. Profondeur, brume légère, rendu magnifique."
+  },
+  {
+   "fichier": "sol_jardin",
+   "taille": "1440x1248",
+   "reference": "brut-arenes/concept_jardin.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Sol de l'arène « Jardin des Lanternes, à l'heure bleue », vu strictement de dessus (caméra verticale), qui remplit toute l'image d'un bord à l'autre : allées de gravier clair ratissé en vagues, grandes dalles de pierre moussues, touffes d'herbe tendre et de trèfle, pétales blancs et pêche portés par le vent. Aucun objet en relief, aucun pilier, aucune caisse, aucun mur, aucune clôture : seulement la surface du sol, plate. Lumière douce et assez uniforme, contraste modéré au centre pour que les personnages et les pièges restent très lisibles par-dessus ; plus de détails et de variations vers les bords."
+  },
+  {
+   "fichier": "pilier_jardin",
+   "taille": "512x640",
+   "detourer": true,
+   "reference": "brut-arenes/concept_jardin.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, base carrée qui occupe toute la largeur de l'objet, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : une lanterne de pierre de jardin arrondie et moussue, base carrée, avec une flamme dorée qui brille dans sa petite fenêtre."
+  },
+  {
+   "fichier": "caisse_jardin",
+   "taille": "512x576",
+   "detourer": true,
+   "reference": "brut-arenes/concept_jardin.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, base carrée qui occupe toute la largeur de l'objet, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : un grand panier tressé en osier, plein de fleurs jaunes et blanches et de petites fusées colorées, un ruban turquoise."
+  },
+  {
+   "fichier": "borne_jardin",
+   "taille": "384x640",
+   "detourer": true,
+   "reference": "brut-arenes/concept_jardin.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, silhouette fine et haute, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : un poteau de bambou épais ligaturé de corde, avec une petite lanterne de papier ronde allumée."
+  },
+  {
+   "fichier": "fond_jardin",
+   "taille": "1920x1080",
+   "reference": "brut-arenes/concept_jardin.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Décor d'ambiance plein écran autour de l'arène « Jardin des Lanternes, à l'heure bleue », vu en légère plongée : haies taillées en boules, cerisiers en fleurs, bassin aux nénuphars, petits ponts de bois, lanternes de pierre allumées, lucioles, ciel bleu profond. Le centre de l'image est un grand espace sombre et calme (le plateau de jeu sera posé par-dessus) ; la richesse et la lumière sont sur les côtés, en haut et en bas. Profondeur, brume légère, rendu magnifique."
+  },
+  {
+   "fichier": "sol_quai",
+   "taille": "1440x1248",
+   "reference": "brut-arenes/concept_quai.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Sol de l'arène « Quai des Fusées, la nuit au port », vu strictement de dessus (caméra verticale), qui remplit toute l'image d'un bord à l'autre : larges planches de bois de quai patinées, plaques de métal rivetées, cordages enroulés à plat, petites flaques qui reflètent des lumières colorées. Aucun objet en relief, aucun pilier, aucune caisse, aucun mur, aucune clôture : seulement la surface du sol, plate. Lumière douce et assez uniforme, contraste modéré au centre pour que les personnages et les pièges restent très lisibles par-dessus ; plus de détails et de variations vers les bords."
+  },
+  {
+   "fichier": "pilier_quai",
+   "taille": "512x640",
+   "detourer": true,
+   "reference": "brut-arenes/concept_quai.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, base carrée qui occupe toute la largeur de l'objet, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : une bitte d'amarrage en fonte peinte turquoise, base carrée boulonnée, avec un cordage épais enroulé autour."
+  },
+  {
+   "fichier": "caisse_quai",
+   "taille": "512x576",
+   "detourer": true,
+   "reference": "brut-arenes/concept_quai.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, base carrée qui occupe toute la largeur de l'objet, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : un tonneau de poudre cerclé de métal à côté d'une caisse de fusées couverte d'une bâche rouge, groupés en un seul bloc compact."
+  },
+  {
+   "fichier": "borne_quai",
+   "taille": "384x640",
+   "detourer": true,
+   "reference": "brut-arenes/concept_quai.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, silhouette fine et haute, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : un pieu de quai en bois sombre cerclé de fer, avec une petite lanterne de bateau verte."
+  },
+  {
+   "fichier": "fond_quai",
+   "taille": "1920x1080",
+   "reference": "brut-arenes/concept_quai.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Décor d'ambiance plein écran autour de l'arène « Quai des Fusées, la nuit au port », vu en légère plongée : eau sombre qui scintille, bateaux de pêche illuminés, grues portuaires, rampes de lancement de fusées géantes, phare, feux d'artifice au loin au-dessus de la mer. Le centre de l'image est un grand espace sombre et calme (le plateau de jeu sera posé par-dessus) ; la richesse et la lumière sont sur les côtés, en haut et en bas. Profondeur, brume légère, rendu magnifique."
+  },
+  {
+   "fichier": "sol_lac",
+   "taille": "1440x1248",
+   "reference": "brut-arenes/concept_lac.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Sol de l'arène « Lac Gelé, nuit d'aurore boréale », vu strictement de dessus (caméra verticale), qui remplit toute l'image d'un bord à l'autre : glace bleue translucide avec fines fissures blanches et bulles prises dans la glace, plaques de neige poudreuse, reflets turquoise et violets de l'aurore. Aucun objet en relief, aucun pilier, aucune caisse, aucun mur, aucune clôture : seulement la surface du sol, plate. Lumière douce et assez uniforme, contraste modéré au centre pour que les personnages et les pièges restent très lisibles par-dessus ; plus de détails et de variations vers les bords."
+  },
+  {
+   "fichier": "pilier_lac",
+   "taille": "512x640",
+   "detourer": true,
+   "reference": "brut-arenes/concept_lac.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, base carrée qui occupe toute la largeur de l'objet, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : un bloc de glace taillé, base carrée, translucide bleu turquoise, avec une lanterne dorée allumée prise à l'intérieur."
+  },
+  {
+   "fichier": "caisse_lac",
+   "taille": "512x576",
+   "detourer": true,
+   "reference": "brut-arenes/concept_lac.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, base carrée qui occupe toute la largeur de l'objet, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : une caisse en bois couverte de neige, emballée comme un cadeau avec un ruban corail et un nœud, quelques pétards qui dépassent."
+  },
+  {
+   "fichier": "borne_lac",
+   "taille": "384x640",
+   "detourer": true,
+   "reference": "brut-arenes/concept_lac.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Un seul objet de décor de jeu, vu de trois quarts en légère plongée (on voit son dessus et sa face avant), posé bien droit, silhouette compacte et massive, silhouette fine et haute, bien éclairé, contours nets, lisible en tout petit (48 pixels de large) : un piquet de bois enneigé avec une petite lanterne dorée et une écharpe tricotée corail."
+  },
+  {
+   "fichier": "fond_lac",
+   "taille": "1920x1080",
+   "reference": "brut-arenes/concept_lac.png",
+   "reference_texte": "L'image jointe est le concept de cette arène : reprends fidèlement ses matières, ses couleurs, sa lumière et son ambiance.",
+   "prompt": "Décor d'ambiance plein écran autour de l'arène « Lac Gelé, nuit d'aurore boréale », vu en légère plongée : sapins enneigés, chalets de bois avec guirlandes lumineuses, patineurs lointains en silhouette, aurore boréale turquoise et violette dans le ciel étoilé. Le centre de l'image est un grand espace sombre et calme (le plateau de jeu sera posé par-dessus) ; la richesse et la lumière sont sur les côtés, en haut et en bas. Profondeur, brume légère, rendu magnifique."
+  }
+ ]
+}
