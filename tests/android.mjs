@@ -30,11 +30,19 @@ const shot = async (/** @type {string} */ name) => writeFileSync(`${OUT}/android
 const until = async (page, what, fn, ms = 15000) => {
   try { await page.waitForFunction(fn, null, { timeout: ms }); return true; } catch { return check(false, `${what} (délai dépassé)`); }
 };
-/** Touche réelle sur l'écran, au centre d'un élément de la page. @param {any} page @param {string} sel */
+/** Touche réelle sur l'écran, au centre d'un élément de la page (amené à l'écran d'abord :
+ * le menu défile en portrait). Renvoie l'élément réellement sous le doigt, pour le diagnostic.
+ * @param {any} page @param {string} sel */
 async function tapOn(page, sel, holdMs = 0) {
-  const p = await page.evaluate((/** @type {string} */ s) => { const r = document.querySelector(s).getBoundingClientRect();
-    return { x: (r.x + r.width / 2) * devicePixelRatio, y: (r.y + r.height / 2) * devicePixelRatio }; }, sel);
+  await page.evaluate((/** @type {string} */ s) => document.querySelector(s).scrollIntoView({ block: 'center', inline: 'center' }), sel);
+  await sleep(400);
+  const p = await page.evaluate((/** @type {string} */ s) => { const el = document.querySelector(s), r = el.getBoundingClientRect(), cx = r.x + r.width / 2, cy = r.y + r.height / 2;
+    const hit = document.elementFromPoint(cx, cy);
+    return { x: cx * devicePixelRatio, y: cy * devicePixelRatio, ok: !!hit && (hit === el || el.contains(hit)), hit: hit ? hit.tagName + '#' + hit.id + '.' + hit.className : 'rien', dpr: devicePixelRatio, w: innerWidth, h: innerHeight }; }, sel);
+  const screen = (await sh('wm size')).match(/(\d+)x(\d+)\s*$/m);
+  console.log(`      toucher ${sel} à ${p.x | 0},${p.y | 0} px (fenêtre ${p.w}x${p.h} à ×${p.dpr}, écran ${screen ? screen[1] + 'x' + screen[2] : '?'}, sous le doigt : ${p.hit})`);
   await sh(holdMs ? `input swipe ${p.x | 0} ${p.y | 0} ${p.x | 0} ${p.y | 0} ${holdMs}` : `input tap ${p.x | 0} ${p.y | 0}`);
+  return p.ok;
 }
 
 try {
@@ -62,7 +70,7 @@ try {
   await tapOn(page, '#play');
   await until(page, 'la partie démarre au toucher de « Jouer »', () => ['play', 'countdown'].includes(window.__kev.S.mode) && document.getElementById('ov').hidden);
   check(await page.evaluate(() => document.body.classList.contains('touchy') && getComputedStyle(document.getElementById('touch')).display !== 'none'), 'joystick et bouton BOUM affichés');
-  await until(page, 'fin du compte à rebours', () => window.__kev.S.mode === 'play', 10000);
+  if (!await until(page, 'fin du compte à rebours', () => window.__kev.S.mode === 'play', 10000)) throw new Error('la partie n\'a pas démarré');
   const me = () => page.evaluate(() => { const p = window.__kev.S.players.find(q => q.human === 0); return { x: p.x, y: p.y }; });
   const before = await me();
   for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
