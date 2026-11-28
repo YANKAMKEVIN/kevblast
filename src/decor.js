@@ -9,6 +9,7 @@
  */
 import { COLS, ROWS, T } from './config.js';
 import { art, arenaArt } from './art.js';
+import { haloSprite } from './lumiere.js';
 
 /** @typedef {import('./config.js').Theme} Theme */
 /** @typedef {import('./lumiere.js').Light} Light */
@@ -18,8 +19,11 @@ export const isRim = (x, y) => x === 0 || y === 0 || x === COLS - 1 || y === ROW
 /** Sur la clôture, une case sur deux porte une borne ; les autres portent la guirlande. */
 export const isPost = (x, y) => isRim(x, y) && (x + y) % 2 === 0;
 
-/** Hauteurs d'affichage (en cases) des objets peints, posés au bas de leur case. */
-export const SIZES = { pilier: 1.08, caisse: 1.0, borne: 1.45 };
+/** Taille d'affichage (en cases) des objets peints, posés au bas de leur case : largeur `w` et hauteur
+ * plafonnée à `max` (piliers, caisses), ou hauteur `h` (bornes, fines et hautes). */
+export const SIZES = { pilier: { w: 1.0, max: 1.75 }, caisse: { w: .96, max: 1.2 }, borne: { h: 1.5 } };
+/** Hauteur (en cases, depuis le bas de la case) des lanternes des piliers et des bornes. */
+const LAMP = { pilier: 1.25, borne: 1.15 };
 
 /** Hasard décoratif à part (ne touche jamais celui de la partie). */
 const deco = Math.random;
@@ -29,8 +33,8 @@ function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);
 /* ───────────── Sol ───────────── */
 
 /**
- * Sol de l'arène, peint une fois dans un canvas : le visuel peint (ou le damier de secours),
- * un quadrillage très discret pour lire les cases, et la bande sombre de la clôture.
+ * Sol de l'arène, peint une fois dans un canvas : le visuel peint (ou le damier de secours)
+ * et la bande sombre sous la clôture.
  * @param {Theme} th @param {number} dpr
  */
 export function buildFloor(th, dpr) {
@@ -39,25 +43,24 @@ export function buildFloor(th, dpr) {
   const c = /** @type {CanvasRenderingContext2D} */ (f.getContext('2d')); c.scale(dpr, dpr);
   const sol = art(arenaArt('sol', th.id)), pal = th.floor;
   if (sol) {
-    const r = Math.max(W / sol.width, H / sol.height), sw = W / r, sh = H / r;
-    c.drawImage(sol, (sol.width - sw) / 2, (sol.height - sh) / 2, sw, sh, 0, 0, W, H);
+    // Le sol peint dessine 13 x 11 dalles : il couvre exactement l'aire de jeu (dalles = cases).
+    // Sous la clôture, le même sol agrandi et assombri prolonge la place.
+    c.filter = 'blur(3px) brightness(.55) saturate(1.1)'; c.drawImage(sol, -T * .6, -T * .6, W + T * 1.2, H + T * 1.2); c.filter = 'none';
+    c.save(); c.shadowColor = '#000a'; c.shadowBlur = 14; c.drawImage(sol, T, T, W - 2 * T, H - 2 * T); c.restore();
   } else {
     for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
       c.fillStyle = (x + y) % 2 ? pal[0] : pal[1]; c.fillRect(x * T, y * T, T, T);
       c.fillStyle = pal[2]; c.globalAlpha = .35; c.fillRect(x * T, y * T + T - 2, T, 2); c.fillRect(x * T + T - 2, y * T, 2, T); c.globalAlpha = 1;
     }
+    // damier et joints très légers : on lit les cases
+    c.fillStyle = '#000'; c.globalAlpha = .045;
+    for (let y = 1; y < ROWS - 1; y++) for (let x = 1; x < COLS - 1; x++) if ((x + y) % 2) c.fillRect(x * T, y * T, T, T);
+    c.globalAlpha = 1;
   }
-  // damier et joints très légers : on lit les cases sans abîmer la peinture
-  c.fillStyle = '#000'; c.globalAlpha = .045;
-  for (let y = 1; y < ROWS - 1; y++) for (let x = 1; x < COLS - 1; x++) if ((x + y) % 2) c.fillRect(x * T, y * T, T, T);
-  c.globalAlpha = .07; c.strokeStyle = '#000'; c.lineWidth = 1; c.beginPath();
-  for (let x = 1; x < COLS; x++) { c.moveTo(x * T + .5, T); c.lineTo(x * T + .5, H - T); }
-  for (let y = 1; y < ROWS; y++) { c.moveTo(T, y * T + .5); c.lineTo(W - T, y * T + .5); }
-  c.stroke(); c.globalAlpha = 1;
   // la clôture repose sur une bande plus sombre, et l'aire de jeu a un léger liseré de lumière
   const band = (x0, y0, x1, y1, vx, vy) => { const g = c.createLinearGradient(x0, y0, x0 + vx, y0 + vy); g.addColorStop(0, '#0009'); g.addColorStop(1, '#0000'); c.fillStyle = g; c.fillRect(Math.min(x0, x1), Math.min(y0, y1), Math.abs(x1 - x0) || T * 1.4, Math.abs(y1 - y0) || T * 1.4); };
-  band(0, 0, W, 0, 0, T * 1.4); band(0, H, W, H - T * 1.4, 0, -T * 1.4);
-  band(0, 0, 0, H, T * 1.4, 0); band(W, 0, W - T * 1.4, H, -T * 1.4, 0);
+  band(0, 0, W, 0, 0, T * 1.2); band(0, H, W, H - T * 1.2, 0, -T * 1.2);
+  band(0, 0, 0, H, T * 1.2, 0); band(W, 0, W - T * 1.2, H, -T * 1.2, 0);
   c.strokeStyle = '#ffffff'; c.globalAlpha = .12; c.lineWidth = 2; c.strokeRect(T + 1, T + 1, W - 2 * T - 2, H - 2 * T - 2); c.globalAlpha = 1;
   return f;
 }
@@ -80,11 +83,15 @@ export function dropShadow(c, px, py, w) { c.drawImage(shadow(), px - w * .62 + 
 /**
  * Objet peint posé au bas de sa case (trois quarts : il déborde vers le haut).
  * @param {CanvasRenderingContext2D} c @param {HTMLImageElement} im @param {number} x @param {number} y
- * @param {number} h hauteur en cases @param {number} [squash] écrasement (sursaut des caisses)
+ * @param {{w?:number,max?:number,h?:number}} size taille en cases (voir SIZES) @param {number} [squash] écrasement (sursaut des caisses)
  * @returns {number} y du haut de l'objet (pixels)
  */
-function standing(c, im, x, y, h, squash = 0) {
-  const H = h * T * (1 - squash), W = Math.min(T * 1.12, H * im.width / im.height) * (1 + squash * .5);
+function standing(c, im, x, y, size, squash = 0) {
+  const r = im.height / im.width;
+  let W, H;
+  if (size.w) { W = size.w * T; H = Math.min((size.max || 2) * T, W * r); W = H / r; }
+  else { H = (size.h || 1) * T; W = H / r; }
+  H *= 1 - squash; W *= 1 + squash * .5;
   const px = (x + .5) * T, foot = (y + 1) * T + T * .04;
   dropShadow(c, px, foot - T * .06, W * .95);
   c.drawImage(im, px - W / 2, foot - H, W, H);
@@ -121,7 +128,7 @@ export function drawRim(c, th, x, y) {
 }
 
 /** Point d'accroche de la guirlande en haut d'une borne (pixels). @param {number} x @param {number} y */
-const hook = (x, y) => ({ x: (x + .5) * T, y: (y + 1) * T - SIZES.borne * T * .78 });
+const hook = (x, y) => ({ x: (x + .5) * T, y: (y + 1) * T - (SIZES.borne.h || 1.5) * T * .8 });
 
 /**
  * Guirlandes de la rangée y de la clôture (fanions, lampions ou ampoules), qui se balancent.
@@ -171,8 +178,8 @@ export function decorLights(th, grid, now) {
   if (!art(arenaArt('borne', th.id)) && !th.night) return out;
   const fl = (/** @type {number} */ i) => .9 + .1 * Math.sin(now * 6.3 + i * 2.7) * Math.sin(now * 3.1 + i);
   for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
-    if (isPost(x, y) && (x + y) % 4 === 0) out.push({ x: x + .5, y: y + 1 - SIZES.borne * .7, r: th.night ? 1.4 : 1.6, a: .8 * fl(x + y * 15), col: th.glow, g: .55 });
-    else if (th.lamps && grid[y]?.[x] === 1 && !isRim(x, y) && x % 4 === 2 && y % 4 === 2) out.push({ x: x + .5, y: y + 1 - SIZES.pilier * .75, r: th.night ? 1.2 : 1.5, a: .75 * fl(x * 7 + y), col: th.glow, g: .5 });
+    if (isPost(x, y) && (x + y) % 4 === 0) out.push({ x: x + .5, y: y + 1 - LAMP.borne, r: th.night ? 1.4 : 1.6, a: .8 * fl(x + y * 15), col: th.glow, g: .55 });
+    else if (th.lamps && grid[y]?.[x] === 1 && !isRim(x, y) && (th.night || (x + y) % 4 === 0)) out.push({ x: x + .5, y: y + 1 - LAMP.pilier, r: th.night ? 1.05 : 1.4, a: .75 * fl(x * 7 + y), col: th.glow, g: .5 });
   }
   return out;
 }
@@ -249,7 +256,7 @@ export function drawAmbience(c, th, now) {
       c.globalCompositeOperation = 'lighter';
       if (th.fx === 'lanternes') {
         const fl = .8 + .2 * Math.sin(now * 5 + m.ph), s = 6 * m.s;
-        c.globalAlpha = .35 * fl; c.fillStyle = '#ff7a2a'; c.beginPath(); c.arc(px, py, s * 2.6, 0, 7); c.fill();
+        c.globalAlpha = .55 * fl; c.drawImage(haloSprite('#ff7a2a'), px - s * 3, py - s * 3, s * 6, s * 6);
         c.globalCompositeOperation = 'source-over'; c.globalAlpha = .95;
         c.fillStyle = '#ffb347'; rr(c, px - s * .7, py - s, s * 1.4, s * 1.8, s * .35); c.fill();
         c.fillStyle = '#fff1b0'; c.globalAlpha = .7 * fl; c.fillRect(px - s * .3, py - s * .2, s * .6, s * .7);

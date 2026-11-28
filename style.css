@@ -8,7 +8,7 @@
 html,body{height:100%}
 body{margin:0;background:radial-gradient(120% 80% at 50% 0%,var(--ciel-a) 0%,var(--ciel-b) 70%) fixed;transition:background-color .8s;color:var(--ink);font:16px/1.45 Nunito,system-ui,sans-serif;overflow-x:clip;display:flex;flex-direction:column;align-items:center;padding:10px 10px 16px}
 /* décor peint de l'arène derrière le plateau (posé par decor.setBackdrop), assombri au centre */
-body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(60% 70% at 50% 50%,#0008 0%,#0003 60%,#0006 100%),var(--fond) center/cover no-repeat;transition:opacity .6s}
+body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(#000a,#0000 22%),radial-gradient(60% 70% at 50% 50%,#000a 0%,#0005 55%,#0008 100%),var(--fond) center/cover no-repeat;transition:opacity .6s}
 .top{width:var(--w);display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
 .logo{font:32px/1 'Lilita One',sans-serif;letter-spacing:.5px;color:var(--gold);text-shadow:0 3px 0 #b5361f,0 6px 14px #0008;margin-right:auto}
 .logo span{color:var(--coral);text-shadow:0 3px 0 #7a1d0e,0 6px 14px #0008}
@@ -16,7 +16,7 @@ body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .ib{all:unset;cursor:pointer;min-width:40px;height:40px;border-radius:12px;background:#ffffff14;display:grid;place-items:center;font-weight:900;font-size:14px;padding:0 12px;color:var(--ink)}
 .ib:hover{background:#ffffff26}.ib:focus-visible{outline:3px solid var(--gold)}
 #hud{width:var(--w);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:8px}
-.card{background:#00000038;border-radius:14px;padding:6px 10px 6px 8px;display:flex;gap:8px;align-items:center;border:2px solid transparent;transition:opacity .3s}
+.card{background:#0b0716b8;backdrop-filter:blur(4px);border-radius:14px;padding:6px 10px 6px 8px;display:flex;gap:8px;align-items:center;border:2px solid transparent;transition:opacity .3s}
 .card.dead{opacity:.38}
 .card canvas{width:38px;height:38px;flex:none}
 .card b{font:18px/1 'Lilita One',sans-serif;display:block}

@@ -33,7 +33,7 @@ function radial(col) {
 }
 
 /** Halo coloré (mis en cache par couleur). @param {string} col */
-function halo(col) {
+export function haloSprite(col) {
   let h = halos.get(col);
   if (!h) { h = radial(col); halos.set(col, h); }
   return h;
@@ -74,7 +74,7 @@ export function drawLighting(ctx, amb, lights, glow) {
   for (const l of lights) {
     if (!l.col) continue;
     ctx.globalAlpha = Math.min(1, l.a * glow * (l.g ?? 1)); const r = l.r * T * .8;
-    ctx.drawImage(halo(l.col), l.x * T - r, l.y * T - r, r * 2, r * 2);
+    ctx.drawImage(haloSprite(l.col), l.x * T - r, l.y * T - r, r * 2, r * 2);
   }
   ctx.restore();
 }
