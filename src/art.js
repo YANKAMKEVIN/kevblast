@@ -42,7 +42,7 @@ export const ARENA_PARTS = /** @type {const} */ (['sol', 'pilier', 'caisse', 'bo
 export const arenaArt = (part, id) => `arenes/${part}_${id}`;
 /** Arènes dont les visuels peints sont livrés dans art/arenes/ (les autres gardent le dessin de secours,
  * sans requête inutile). Vérifié par tests/unit/arenes.test.mjs. */
-export const PAINTED_ARENAS = /** @type {string[]} */ (['marche', 'lanternes']);
+export const PAINTED_ARENAS = /** @type {string[]} */ (['marche', 'jardin', 'quai', 'lanternes', 'lac']);
 
 /** @type {Map<string, HTMLImageElement>} */
 const loaded = new Map();
