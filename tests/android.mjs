@@ -79,7 +79,9 @@ try {
   await tapOn(page, '#play');
   await until(page, 'la partie démarre au toucher de « Jouer »', () => ['play', 'countdown'].includes(window.__kev.S.mode) && document.getElementById('ov').hidden);
   check(await page.evaluate(() => document.body.classList.contains('touchy') && getComputedStyle(document.getElementById('touch')).display !== 'none'), 'joystick et bouton BOUM affichés');
-  if (!await until(page, 'fin du compte à rebours', () => window.__kev.S.mode === 'play', 10000)) throw new Error('la partie n\'a pas démarré');
+  // Compte à rebours de 3 s en temps de jeu : bien plus long en temps réel sur l'émulateur
+  // logiciel (pas de carte graphique), d'où la marge.
+  if (!await until(page, 'fin du compte à rebours', () => window.__kev.S.mode === 'play', 60000)) throw new Error('la partie n\'a pas démarré');
   const me = () => page.evaluate(() => { const p = window.__kev.S.players.find(q => q.human === 0); return { x: p.x, y: p.y }; });
   const screenH = Number(((await sh('wm size')).match(/x(\d+)\s*$/m) || [0, 0])[1]);
   const before = await me();
@@ -94,7 +96,7 @@ try {
   check(Math.hypot(after.x - before.x, after.y - before.y) > .3, 'le joystick déplace le héros');
   const bombs0 = await page.evaluate(() => window.__kev.S.bombs.length);
   await tapOn(page, '#tb', 120);
-  check(await page.waitForFunction(n => window.__kev.S.bombs.length > n || window.__kev.S.mode !== 'play', bombs0, { timeout: 3000 }).then(() => true, () => false), 'le bouton BOUM pose un pétard');
+  check(await page.waitForFunction(n => window.__kev.S.bombs.length > n || window.__kev.S.mode !== 'play', bombs0, { timeout: 8000 }).then(() => true, () => false), 'le bouton BOUM pose un pétard');
   await shot('2-partie');
 
   // Mesure de la cadence pendant 3 s de partie
