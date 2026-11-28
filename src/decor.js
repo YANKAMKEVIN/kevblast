@@ -37,7 +37,13 @@ function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);
  * et la bande sombre sous la clôture.
  * @param {Theme} th @param {number} dpr
  */
-export function buildFloor(th, dpr) {
+/** Cases dont l'ombre (piliers) ou l'objet entier (bornes du haut et des côtés) est peint dans le sol :
+ * rien ne passe jamais devant, autant ne les dessiner qu'une fois par manche. */
+const baked = new Set();
+
+/** @param {Theme} th @param {number} dpr @param {number[][]} [grid] */
+export function buildFloor(th, dpr, grid) {
+  baked.clear();
   const W = COLS * T, H = ROWS * T;
   const f = document.createElement('canvas'); f.width = W * dpr; f.height = H * dpr;
   const c = /** @type {CanvasRenderingContext2D} */ (f.getContext('2d')); c.scale(dpr, dpr);
@@ -62,12 +68,49 @@ export function buildFloor(th, dpr) {
   band(0, 0, W, 0, 0, T * 1.2); band(0, H, W, H - T * 1.2, 0, -T * 1.2);
   band(0, 0, 0, H, T * 1.2, 0); band(W, 0, W - T * 1.2, H, -T * 1.2, 0);
   c.strokeStyle = '#ffffff'; c.globalAlpha = .12; c.lineWidth = 2; c.strokeRect(T + 1, T + 1, W - 2 * T - 2, H - 2 * T - 2); c.globalAlpha = 1;
+  const borne = art(arenaArt('borne', th.id));
+  if (sol && grid) for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+    if (isRim(x, y)) { if (borne && isPost(x, y) && y < ROWS - 1) { standing(c, borne, x, y, SIZES.borne); baked.add(y * COLS + x); } else if (y < ROWS - 1) baked.add(y * COLS + x); }
+    else if (grid[y][x] === 1) { dropShadow(c, (x + .5) * T, (y + 1) * T - T * .02, T * .95); baked.add(y * COLS + x); }
+  }
   return f;
 }
 
 /* ───────────── Ombres et objets peints ───────────── */
 
 /** @type {HTMLCanvasElement|null} */ let shadowSpr = null;
+/** Résolution des sprites mis à l'échelle (pixels réels par pixel de jeu). */
+let spriteDpr = Math.min(2, (typeof devicePixelRatio === 'number' && devicePixelRatio) || 1);
+/** @type {Map<HTMLImageElement, Map<string, HTMLCanvasElement>>} */
+const scaledCache = new Map();
+/**
+ * L'image réduite une fois pour toutes à sa taille d'affichage : réduire un grand visuel à chaque
+ * image coûte cher sur téléphone, dessiner une copie à la bonne taille ne coûte presque rien.
+ * @param {HTMLImageElement} im @param {number} W @param {number} H
+ * @returns {CanvasImageSource}
+ */
+function scaled(im, W, H) {
+  const w = Math.max(1, Math.round(W * spriteDpr)), h = Math.max(1, Math.round(H * spriteDpr)), k = w + 'x' + h;
+  let m = scaledCache.get(im); if (!m) { m = new Map(); scaledCache.set(im, m); }
+  let c = m.get(k);
+  if (!c) {
+    if (m.size > 6) return im; // tailles changeantes (sursaut d'une caisse) : pas de cache
+    c = document.createElement('canvas'); c.width = w; c.height = h;
+    const x = /** @type {CanvasRenderingContext2D} */ (c.getContext('2d')); x.imageSmoothingQuality = 'high';
+    // réduction par moitiés successives : plus net qu'une seule grosse réduction
+    /** @type {CanvasImageSource} */ let src = im; let sw = im.width, sh = im.height;
+    while (sw / 2 > w * 1.2) {
+      const t = document.createElement('canvas'); t.width = Math.round(sw / 2); t.height = Math.round(sh / 2);
+      /** @type {CanvasRenderingContext2D} */ (t.getContext('2d')).drawImage(src, 0, 0, t.width, t.height);
+      src = t; sw = t.width; sh = t.height;
+    }
+    x.drawImage(src, 0, 0, w, h); m.set(k, c);
+  }
+  return c;
+}
+/** @param {number} dpr */
+export function setSpriteDpr(dpr) { spriteDpr = dpr; scaledCache.clear(); }
+
 /** Ombre douce (dégradé précalculé). */
 function shadow() {
   if (shadowSpr) return shadowSpr;
@@ -84,17 +127,18 @@ export function dropShadow(c, px, py, w) { c.drawImage(shadow(), px - w * .62 + 
  * Objet peint posé au bas de sa case (trois quarts : il déborde vers le haut).
  * @param {CanvasRenderingContext2D} c @param {HTMLImageElement} im @param {number} x @param {number} y
  * @param {{w?:number,max?:number,h?:number}} size taille en cases (voir SIZES) @param {number} [squash] écrasement (sursaut des caisses)
+ * @param {boolean} [withShadow] ombre au sol (faux quand elle est déjà peinte dans le sol)
  * @returns {number} y du haut de l'objet (pixels)
  */
-function standing(c, im, x, y, size, squash = 0) {
+function standing(c, im, x, y, size, squash = 0, withShadow = true) {
   const r = im.height / im.width;
   let W, H;
   if (size.w) { W = size.w * T; H = Math.min((size.max || 2) * T, W * r); W = H / r; }
   else { H = (size.h || 1) * T; W = H / r; }
   H *= 1 - squash; W *= 1 + squash * .5;
   const px = (x + .5) * T, foot = (y + 1) * T + T * .04;
-  dropShadow(c, px, foot - T * .06, W * .95);
-  c.drawImage(im, px - W / 2, foot - H, W, H);
+  if (withShadow) dropShadow(c, px, foot - T * .06, W * .95);
+  c.drawImage(scaled(im, W, H), px - W / 2, foot - H, W, H);
   return foot - H;
 }
 
@@ -105,7 +149,7 @@ function standing(c, im, x, y, size, squash = 0) {
  */
 export function drawPillar(c, th, x, y) {
   const im = art(arenaArt('pilier', th.id)); if (!im) return false;
-  standing(c, im, x, y, SIZES.pilier); return true;
+  standing(c, im, x, y, SIZES.pilier, 0, !baked.has(y * COLS + x)); return true;
 }
 
 /**
@@ -123,7 +167,7 @@ export function drawCrate(c, th, x, y, squash = 0) {
  */
 export function drawRim(c, th, x, y) {
   const im = art(arenaArt('borne', th.id)); if (!im) return false;
-  if (isPost(x, y)) standing(c, im, x, y, SIZES.borne);
+  if (isPost(x, y) && !baked.has(y * COLS + x)) standing(c, im, x, y, SIZES.borne);
   return true;
 }
 

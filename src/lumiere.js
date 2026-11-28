@@ -12,12 +12,15 @@ import { COLS, ROWS, T } from './config.js';
  * @typedef {{x:number,y:number,r:number,a:number,col?:string,g?:number}} Light
  */
 
-/** Résolution de la nappe d'obscurité par rapport au plateau (la lumière est floue : moitié suffit). */
-export const LIGHT_SCALE = .5;
+/** Résolution des nappes d'obscurité et de halos par rapport au plateau : la lumière est floue,
+ * un quart suffit et chaque lumière ne coûte presque rien (seules deux images plein plateau par image). */
+export const LIGHT_SCALE = .25;
 const SPR = 64;
 
 /** @type {HTMLCanvasElement} */ let shadeC;
 /** @type {CanvasRenderingContext2D} */ let sctx;
+/** @type {HTMLCanvasElement} */ let glowC;
+/** @type {CanvasRenderingContext2D} */ let gctx;
 /** @type {HTMLCanvasElement} */ let hole;
 /** @type {Map<string, HTMLCanvasElement>} */
 const halos = new Map();
@@ -44,6 +47,8 @@ export function initLight(dpr) {
   shadeC = document.createElement('canvas');
   shadeC.width = Math.ceil(COLS * T * dpr * LIGHT_SCALE); shadeC.height = Math.ceil(ROWS * T * dpr * LIGHT_SCALE);
   sctx = /** @type {CanvasRenderingContext2D} */ (shadeC.getContext('2d'));
+  glowC = document.createElement('canvas'); glowC.width = shadeC.width; glowC.height = shadeC.height;
+  gctx = /** @type {CanvasRenderingContext2D} */ (glowC.getContext('2d'));
   hole = radial('#000000');
 }
 
@@ -69,12 +74,14 @@ export function drawLighting(ctx, amb, lights, glow) {
     sctx.globalCompositeOperation = 'source-over'; sctx.globalAlpha = 1;
     ctx.drawImage(shadeC, 0, 0, COLS * T, ROWS * T);
   }
-  if (glow <= 0) return;
-  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  if (glow <= 0 || !gctx) return;
+  const k = glowC.width / (COLS * T);
+  gctx.setTransform(k, 0, 0, k, 0, 0); gctx.globalCompositeOperation = 'source-over'; gctx.globalAlpha = 1;
+  gctx.clearRect(0, 0, COLS * T, ROWS * T); gctx.globalCompositeOperation = 'lighter';
   for (const l of lights) {
     if (!l.col) continue;
-    ctx.globalAlpha = Math.min(1, l.a * glow * (l.g ?? 1)); const r = l.r * T * .8;
-    ctx.drawImage(haloSprite(l.col), l.x * T - r, l.y * T - r, r * 2, r * 2);
+    gctx.globalAlpha = Math.min(1, l.a * glow * (l.g ?? 1)); const r = l.r * T * .8;
+    gctx.drawImage(haloSprite(l.col), l.x * T - r, l.y * T - r, r * 2, r * 2);
   }
-  ctx.restore();
+  ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.drawImage(glowC, 0, 0, COLS * T, ROWS * T); ctx.restore();
 }

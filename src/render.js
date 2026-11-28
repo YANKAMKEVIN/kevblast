@@ -19,11 +19,11 @@ export function setNow(t) { now = t; }
 export function initRender(canvas) {
   cv = canvas; ctx = /** @type {CanvasRenderingContext2D} */ (cv.getContext('2d'));
   cv.width = COLS * T * DPR; cv.height = ROWS * T * DPR;
-  initLight(DPR);
+  initLight(DPR); decor.setSpriteDpr(DPR);
 }
 
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
-function buildFloor(){const th=THEMES[S.arena];if(art(`arenes/sol_${th.id}`)){S.floor=decor.buildFloor(th,DPR);return}const f=document.createElement('canvas');f.width=COLS*T*DPR;f.height=ROWS*T*DPR;const c=/** @type {CanvasRenderingContext2D} */(f.getContext('2d'));c.scale(DPR,DPR);
+function buildFloor(){const th=THEMES[S.arena];if(art(`arenes/sol_${th.id}`)){S.floor=decor.buildFloor(th,DPR,S.grid);return}const f=document.createElement('canvas');f.width=COLS*T*DPR;f.height=ROWS*T*DPR;const c=/** @type {CanvasRenderingContext2D} */(f.getContext('2d'));c.scale(DPR,DPR);
  const pal=THEMES[S.arena].floor,sol=art('sol');
  if(sol){paintFloor(c,sol,pal);S.floor=f;return}
  for(let y=0;y<ROWS;y++)for(let x=0;x<COLS;x++){c.fillStyle=(x+y)%2?pal[0]:pal[1];c.fillRect(x*T,y*T,T,T);c.fillStyle=pal[2];c.globalAlpha=.35;c.fillRect(x*T,y*T+T-2,T,2);c.fillRect(x*T+T-2,y*T,2,T);c.globalAlpha=1;
@@ -163,6 +163,12 @@ function drawCharge(c,p,px,py){
   if(l>0){c.fillStyle=col;c.font='18px "Lilita One"';c.textAlign='center';c.fillText(l===2?'MAX!':'+2',px,py-T*.98)}}}
 /** Arène dont les visuels sont demandés / dernier instant dessiné (pour l'ambiance). */
 let arenaAsked=-1,lastNow=0,preloaded=false;
+/** Qualité adaptative : si les images ralentissent durablement (téléphone modeste), on retire
+ * la passe de halos additifs, la plus coûteuse, sans toucher au jeu. */
+const perf={avg:1/60,slowT:0,low:false};
+/** @param {number} dt */
+function governor(dt){if(dt<=0||dt>.2)return;perf.avg+=(dt-perf.avg)*.05;
+ if(!perf.low&&perf.avg>1/38){perf.slowT+=dt;if(perf.slowT>3){perf.low=true;const w=/** @type {any} */(window);if(w.__kev)w.__kev.lowFx=true}}else perf.slowT=0}
 /** Visuels de l'arène jouée : chargés à la demande, puis les autres en arrière-plan. */
 function ensureArena(){if(arenaAsked===S.arena)return;arenaAsked=S.arena;const th=THEMES[S.arena];
  loadArena(th.id).then(n=>{if(n&&THEMES[S.arena]===th){S.floor=null;decor.setBackdrop(th)}
@@ -178,7 +184,7 @@ function lights(th){const L=decor.decorLights(th,S.grid,now),n=!!th.night;
  return L}
 export function draw(){
  const th=THEMES[S.arena];ensureArena();
- const dt=Math.min(.05,Math.max(0,now-lastNow));lastNow=now;decor.updateAmbience(th,dt);
+ const raw=now-lastNow,dt=Math.min(.05,Math.max(0,raw));lastNow=now;governor(raw);decor.updateAmbience(th,dt);
  if(!S.floor)buildFloor();
  ctx.setTransform(DPR,0,0,DPR,0,0);
  const sh=S.shake;ctx.translate((Math.random()-.5)*sh,(Math.random()-.5)*sh);
@@ -194,7 +200,7 @@ export function draw(){
   for(const p of S.players)if(Math.floor(p.y)===y)drawHero(ctx,p)}
  for(const f of S.falls){const k=Math.min(1,f.t/.35);ctx.fillStyle='#0005';ctx.beginPath();ctx.ellipse((f.x+.5)*T,(f.y+.8)*T,T*.45*k,T*.15*k,0,0,7);ctx.fill();
   if(!f.done){ctx.save();ctx.translate(0,-(1-k)*T*5);drawHard(f.x,f.y);ctx.restore()}}
- drawLighting(ctx,th,lights(th),th.night?1:.8);
+ drawLighting(ctx,perf.low&&!th.night?{dark:0,shade:th.shade}:th,lights(th),perf.low?0:th.night?1:.8);
  ctx.globalCompositeOperation='lighter';
  for(const q of S.parts){const a=1-q.life/q.max;ctx.globalAlpha=a;ctx.fillStyle=q.col;
   if(q.kind==='spark'||q.kind==='burst'||q.kind==='rocket'){ctx.beginPath();ctx.arc(q.x*T,q.y*T,q.kind==='rocket'?3.5:2+a*2.5,0,7);ctx.fill()}else{ctx.save();ctx.translate(q.x*T,q.y*T);ctx.rotate(q.r);ctx.fillRect(-3,-2,6,q.kind==='chip'?4:3);ctx.restore()}}
