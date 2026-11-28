@@ -39,8 +39,14 @@ async function tapOn(page, sel, holdMs = 0) {
   const p = await page.evaluate((/** @type {string} */ s) => { const el = document.querySelector(s), r = el.getBoundingClientRect(), cx = r.x + r.width / 2, cy = r.y + r.height / 2;
     const hit = document.elementFromPoint(cx, cy);
     return { x: cx * devicePixelRatio, y: cy * devicePixelRatio, ok: !!hit && (hit === el || el.contains(hit)), hit: hit ? hit.tagName + '#' + hit.id + '.' + hit.className : 'rien', dpr: devicePixelRatio, w: innerWidth, h: innerHeight }; }, sel);
-  const screen = (await sh('wm size')).match(/(\d+)x(\d+)\s*$/m);
-  console.log(`      toucher ${sel} à ${p.x | 0},${p.y | 0} px (fenêtre ${p.w}x${p.h} à ×${p.dpr}, écran ${screen ? screen[1] + 'x' + screen[2] : '?'}, sous le doigt : ${p.hit})`);
+  // La WebView ne commence pas forcément en haut de l'écran : la zone de la caméra perforée
+  // (en haut en portrait, à gauche en paysage) est laissée libre par Android.
+  const m = (await sh('wm size')).match(/(\d+)x(\d+)\s*$/m);
+  let [sw, shh] = m ? [Number(m[1]), Number(m[2])] : [0, 0];
+  if (p.w > p.h !== sw > shh) [sw, shh] = [shh, sw];
+  const offX = p.w > p.h ? Math.max(0, Math.round(sw - p.w * p.dpr)) : 0, offY = p.w > p.h ? 0 : Math.max(0, Math.round(shh - p.h * p.dpr));
+  p.x += offX; p.y += offY;
+  console.log(`      toucher ${sel} à ${p.x | 0},${p.y | 0} px (fenêtre ${p.w}x${p.h} à ×${p.dpr}, écran ${sw}x${shh}, décalage ${offX},${offY}, sous le doigt : ${p.hit})`);
   await sh(holdMs ? `input swipe ${p.x | 0} ${p.y | 0} ${p.x | 0} ${p.y | 0} ${holdMs}` : `input tap ${p.x | 0} ${p.y | 0}`);
   return p.ok;
 }
@@ -58,7 +64,10 @@ try {
   check(true, `appli ouverte et menu affiché en ${((Date.now() - t0) / 1000).toFixed(1)} s`);
 
   await until(page, 'visuels chargés', () => window.__kev.art !== undefined);
-  check(await page.evaluate(() => window.__kev.art) === ART_FILES.length, `les ${ART_FILES.length} visuels peints sont embarqués et chargés`);
+  // Le jeu n'attend ses visuels que 4 s avant de démarrer (repli dessiné) ; sur l'émulateur
+  // logiciel, plus lent qu'un vrai téléphone, on vérifie qu'ils finissent tous par arriver.
+  const artOk = await page.waitForFunction(n => new Set(performance.getEntriesByType('resource').map(e => e.name).filter(u => /\/art\/[^/]+\.webp$/.test(u))).size >= n, ART_FILES.length, { timeout: 30000 }).then(() => true, () => false);
+  check(artOk, `les ${ART_FILES.length} visuels peints sont embarqués et chargés (${await page.evaluate(() => window.__kev.art)} prêts dans les 4 s du démarrage)`);
   await page.evaluate(() => document.fonts.ready);
   check(await page.evaluate(() => document.fonts.check('20px "Lilita One"') && [...document.fonts].some(f => f.family.includes('Lilita') && f.status === 'loaded')), 'polices embarquées chargées (hors ligne)');
   check(await page.evaluate(() => window.Capacitor?.isNativePlatform() && document.documentElement.classList.contains('natif')), 'pont natif Capacitor actif');
@@ -72,9 +81,11 @@ try {
   check(await page.evaluate(() => document.body.classList.contains('touchy') && getComputedStyle(document.getElementById('touch')).display !== 'none'), 'joystick et bouton BOUM affichés');
   if (!await until(page, 'fin du compte à rebours', () => window.__kev.S.mode === 'play', 10000)) throw new Error('la partie n\'a pas démarré');
   const me = () => page.evaluate(() => { const p = window.__kev.S.players.find(q => q.human === 0); return { x: p.x, y: p.y }; });
+  const screenH = Number(((await sh('wm size')).match(/x(\d+)\s*$/m) || [0, 0])[1]);
   const before = await me();
   for (const [dx, dy] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) {
-    const c = await page.evaluate(() => { const r = document.getElementById('pad').getBoundingClientRect(); return { x: (r.x + r.width / 2) * devicePixelRatio, y: (r.y + r.height / 2) * devicePixelRatio, d: 45 * devicePixelRatio }; });
+    const c = await page.evaluate(() => { const r = document.getElementById('pad').getBoundingClientRect(); return { x: (r.x + r.width / 2) * devicePixelRatio, y: (r.y + r.height / 2) * devicePixelRatio, d: 45 * devicePixelRatio, h: innerHeight * devicePixelRatio }; });
+    c.y += screenH - c.h;
     await sh(`input swipe ${c.x | 0} ${c.y | 0} ${(c.x + dx * c.d) | 0} ${(c.y + dy * c.d) | 0} 900`);
     const now = await me();
     if (Math.hypot(now.x - before.x, now.y - before.y) > .3) break;
