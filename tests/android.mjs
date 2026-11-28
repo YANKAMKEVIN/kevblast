@@ -113,12 +113,12 @@ try {
   await sh('input keyevent KEYCODE_HOME');
   await sleep(2000);
   await sh(`am start -W -n ${PKG}/.MainActivity`);
-  await sleep(1500);
+  await page.waitForFunction(() => window.__kev.S.paused, null, { timeout: 10000 }).catch(() => {});
   const bg = await state();
   check(bg.paused && bg.mode !== 'menu', `après un passage en arrière-plan : partie conservée, en pause (${JSON.stringify(bg)})`);
 
   // Paysage (Galaxy S24 tenu à l'horizontale)
-  await sh('settings put system user_rotation 1');
+  await sh('settings put system user_rotation 1; wm user-rotation lock 1');
   await page.waitForFunction(() => innerWidth > innerHeight, null, { timeout: 20000 }).catch(() => {});
   await sleep(2000);
   const vis = (/** @type {string[]} */ ids) => page.evaluate((/** @type {string[]} */ ids) => ids.every(id => { const el = document.getElementById(id); if (!el) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.left >= -1 && r.right <= innerWidth + 1 && r.top >= -1 && r.bottom <= innerHeight + 1; }), ids);
@@ -128,7 +128,7 @@ try {
   await sleep(800);
   check(await vis(['pad', 'tb', 'cv']), 'paysage : arène, joystick et BOUM visibles en entier');
   await shot('4-paysage');
-  await sh('settings put system user_rotation 0');
+  await sh('settings put system user_rotation 0; wm user-rotation lock 0');
   await page.waitForFunction(() => innerWidth < innerHeight, null, { timeout: 10000 }).catch(() => {});
   await sleep(1000);
 
