@@ -1,0 +1,75 @@
+apply plugin: 'com.android.application'
+
+// Version de l'appli = version du jeu (package.json), une seule source de vérité.
+// versionCode : 1.2.3 -> 10203 (toujours croissant d'une version à l'autre).
+def pkg = new groovy.json.JsonSlurper().parse(rootProject.file('../package.json'))
+def semver = pkg.version.tokenize('.-')[0..2].collect { it as int }
+def kevVersionCode = semver[0] * 10000 + semver[1] * 100 + semver[2]
+
+// Signature : la clé de Kevin, jamais versionnée, arrive par variables d'environnement
+// (secrets ANDROID_KEYSTORE_BASE64 et ANDROID_KEYSTORE_PASSWORD dans la CI, voir
+// mobile/creer-cle.sh). Même clé à chaque build = chaque nouvel APK s'installe
+// par-dessus l'ancien sans perdre la sauvegarde. Sans clé, l'APK release est signé
+// avec la clé de debug de la machine (installable, mais pas en mise à jour d'un autre).
+def env = System.getenv()
+def hasKevKey = env.KEV_KEYSTORE && file(env.KEV_KEYSTORE).exists()
+
+android {
+    namespace = "dev.kevin.kevblast"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "dev.kevin.kevblast"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode kevVersionCode
+        versionName pkg.version
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (hasKevKey) {
+            kevin {
+                storeFile file(env.KEV_KEYSTORE)
+                storePassword env.KEV_KEYSTORE_PASSWORD
+                keyAlias env.KEV_KEY_ALIAS ?: 'kevin'
+                keyPassword env.KEV_KEY_PASSWORD ?: env.KEV_KEYSTORE_PASSWORD
+            }
+        }
+    }
+    buildTypes {
+        release {
+            signingConfig hasKevKey ? signingConfigs.kevin : signingConfigs.debug
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}

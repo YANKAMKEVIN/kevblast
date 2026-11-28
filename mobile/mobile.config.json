@@ -1,0 +1,11 @@
+{
+  "$comment": "Kit mobile : fichiers du jeu embarqués dans l'appli et sources de l'icône. appId et nom : capacitor.config.json.",
+  "web": ["index.html", "style.css", "src", "art", "fonts"],
+  "icon": {
+    "foreground": "art/heros_kev.webp",
+    "background": "art/titre.webp",
+    "backgroundCrop": { "left": 1490, "top": 0, "width": 410, "height": 410 },
+    "color": "#0c2427",
+    "glow": "#ffc63a"
+  }
+}

@@ -11,7 +11,8 @@
     "noImplicitAny": false,
     "noImplicitThis": true,
     "noUnusedLocals": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": []
   },
   "include": ["src/**/*.js"]
 }

@@ -36,6 +36,8 @@ try {
   await page.waitForFunction(() => window.__kev.art !== undefined, null, { timeout: 15000 });
   check(await page.evaluate(() => window.__kev.art) === ART_FILES.length, `les ${ART_FILES.length} visuels peints sont chargés`);
   check((await page.locator('#ov').evaluate(el => getComputedStyle(el).backgroundImage)).includes('titre.webp'), 'affiche peinte derrière le menu');
+  await page.evaluate(() => document.fonts.ready);
+  check(await page.evaluate(() => document.fonts.check('20px "Lilita One"') && document.fonts.check('800 16px Nunito') && [...document.fonts].some(f => f.family.includes('Lilita') && f.status === 'loaded')), 'polices embarquées chargées (aucun appel à Google Fonts)');
   await page.screenshot({ path: `${OUT}/partie-0-menu.png` });
   await page.click('.seg[data-k=goal] button[data-v="2"]');
   await page.click('.heroes[data-k=h1] button[data-v="2"]');
@@ -66,7 +68,11 @@ try {
 
   await page.click('#again');
   check(await page.locator('#ov').isHidden(), 'Revanche relance une partie');
-  await page.keyboard.press('Escape');
+  // Téléphone verrouillé, appel, autre appli : le jeu passe en arrière-plan.
+  await page.evaluate(() => { Object.defineProperty(document, 'hidden', { value: true, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); });
+  check(await page.evaluate(() => window.__kev.S.paused) && await page.locator('#resume').isVisible(), 'jeu caché (arrière-plan) : pause automatique');
+  await page.evaluate(() => { Object.defineProperty(document, 'hidden', { value: false, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); });
+  check(await page.evaluate(() => window.__kev.S.paused), 'retour au premier plan : la pause attend le joueur');
   await page.click('#quit');
   await page.reload();
   await page.waitForSelector('#play');

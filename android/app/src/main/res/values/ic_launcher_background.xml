@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sarcelle profond du jeu (variable bg de style.css) -->
+    <color name="ic_launcher_background">#0C2427</color>
+    <color name="kev_fond">#0C2427</color>
+</resources>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Thème de base : fond sarcelle du jeu partout (aucun flash blanc au lancement ni sur les bords). -->
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="colorPrimary">@color/kev_fond</item>
+        <item name="colorPrimaryDark">@color/kev_fond</item>
+        <item name="colorAccent">#FFC63A</item>
+        <item name="android:windowBackground">@color/kev_fond</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:background">@null</item>
+        <item name="android:windowBackground">@color/kev_fond</item>
+        <item name="android:statusBarColor">@color/kev_fond</item>
+        <item name="android:navigationBarColor">@color/kev_fond</item>
+    </style>
+
+    <!-- Écran de démarrage (API SplashScreen d'Android 12, rétroporté) : le héros sur le fond du jeu. -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/kev_fond</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
+</resources>

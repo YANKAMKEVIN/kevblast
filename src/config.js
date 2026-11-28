@@ -1,7 +1,7 @@
 // @ts-check
 /** Constantes et données du jeu : aucune logique ici. */
 
-export const VERSION = '1.3.0';
+export const VERSION = '1.4.0';
 
 export const COLS = 15, ROWS = 13, T = 48, FUSE = 2.5, FLAME = 0.55, ROUND = 120;
 

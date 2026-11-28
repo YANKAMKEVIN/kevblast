@@ -1,0 +1,145 @@
+name: Android
+
+# Construit l'APK de KEVBLAST, le teste sur un vrai Android (émulateur) puis,
+# à chaque fusion dans main, le publie sur la page Releases du dépôt :
+# https://github.com/yankamkevin/kevblast/releases/latest/download/kevblast.apk
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    name: Construction de l'APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci --no-audit --no-fund
+      - name: Fichiers du jeu -> projet Android
+        run: npm run mobile:sync
+      - name: Clé de signature (secrets du dépôt, voir mobile/creer-cle.sh)
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            printf '%s' "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/kevin.keystore"
+            echo "KEV_KEYSTORE=$RUNNER_TEMP/kevin.keystore" >> "$GITHUB_ENV"
+            echo "Signature : clé de Kevin (les mises à jour s'installent par-dessus)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::warning::Secret ANDROID_KEYSTORE_BASE64 absent : APK signé avec une clé de debug jetable (installable, mais chaque nouvel APK demandera de désinstaller l'ancien). Voir mobile/creer-cle.sh."
+            echo "Signature : clé de debug jetable (secret ANDROID_KEYSTORE_BASE64 absent)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Gradle (debug pour les tests, release signée pour le téléphone)
+        working-directory: android
+        env:
+          KEV_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: ./gradlew --no-daemon assembleDebug assembleRelease
+      - name: Contrôle de l'APK (paquet, version, signature)
+        id: v
+        run: |
+          V=$(node -p "require('./package.json').version")
+          ID=$(node -p "require('./capacitor.config.json').appId")
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          "$BT/aapt2" dump badging "$APK" | tee badging.txt | head -3
+          grep -q "package: name='$ID'" badging.txt
+          grep -q "versionName='$V'" badging.txt
+          "$BT/apksigner" verify --print-certs "$APK" | tee signature.txt
+          if [ -n "${KEV_KEYSTORE:-}" ]; then grep -q "CN=Kevin Creations" signature.txt; fi
+          mkdir -p dist && cp "$APK" dist/kevblast.apk && cp android/app/build/outputs/apk/debug/app-debug.apk dist/kevblast-debug.apk
+          echo "Taille de l'APK : $(du -h dist/kevblast.apk | cut -f1)" >> "$GITHUB_STEP_SUMMARY"
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kevblast-apk
+          path: dist/kevblast.apk
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kevblast-debug-apk
+          path: dist/kevblast-debug.apk
+          retention-days: 7
+
+  emulateur:
+    name: Parcours complet sur Android (émulateur)
+    needs: apk
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: kevblast-debug-apk
+      - name: Accélération matérielle (KVM)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Démarrage de l'émulateur et parcours
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_7
+          cores: 4
+          ram-size: 4096M
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: npm run mobile:test -- kevblast-debug.apk
+      - name: Captures et journal
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures-android
+          path: test-results/
+          retention-days: 7
+
+  publier:
+    name: Publication de l'APK (Releases)
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [apk, emulateur]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: kevblast-apk
+      - name: Release « android-vX.Y.Z »
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ needs.apk.outputs.version }}
+        run: |
+          TAG="android-v$V"
+          NOTES="KEVBLAST $V pour Android. Sur le téléphone : ouvrir ce lien, télécharger kevblast.apk, puis l'ouvrir et autoriser l'installation."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" kevblast.apk --clobber
+          else
+            gh release create "$TAG" kevblast.apk --target "$GITHUB_SHA" --title "KEVBLAST $V (Android)" --notes "$NOTES" --latest
+          fi
