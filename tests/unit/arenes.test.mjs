@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { ARENAS, THEMES, COLS, ROWS } from '../../src/config.js';
-import { ARENA_PARTS, arenaArt } from '../../src/art.js';
+import { ARENA_PARTS, PAINTED_ARENAS, arenaArt } from '../../src/art.js';
 import { isRim, isPost, decorLights, MOTES_MAX } from '../../src/decor.js';
 import { genMap } from '../../src/rules.js';
 import { seed, rnd } from '../../src/rng.js';
@@ -31,6 +31,7 @@ test('chaque visuel d\'arène a son prompt Codex, et ses fichiers sont tous là 
     assert.ok(noms.has(`concept_${t.id}`), `concept_${t.id}`);
     const present = ARENA_PARTS.map(p => { assert.ok(noms.has(`${p}_${t.id}`), `prompt ${p}_${t.id}`); return existsSync(new URL(`art/${arenaArt(p, t.id)}.webp`, root)); });
     assert.ok(present.every(Boolean) || !present.some(Boolean), `${t.id} : visuels incomplets`);
+    assert.equal(PAINTED_ARENAS.includes(t.id), present.every(Boolean), `${t.id} : PAINTED_ARENAS à jour`);
   }
   for (const im of prompts.images) {
     if (/^(pilier|caisse|borne)_/.test(im.fichier)) assert.ok(im.detourer, `${im.fichier} est détouré`);

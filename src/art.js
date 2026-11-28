@@ -40,6 +40,9 @@ export const ARENA_PARTS = /** @type {const} */ (['sol', 'pilier', 'caisse', 'bo
  * @param {ArenaPart} part @param {string} id
  */
 export const arenaArt = (part, id) => `arenes/${part}_${id}`;
+/** Arènes dont les visuels peints sont livrés dans art/arenes/ (les autres gardent le dessin de secours,
+ * sans requête inutile). Vérifié par tests/unit/arenes.test.mjs. */
+export const PAINTED_ARENAS = /** @type {string[]} */ ([]);
 
 /** @type {Map<string, HTMLImageElement>} */
 const loaded = new Map();
@@ -85,6 +88,7 @@ export function loadArt(maxMs = 4000) {
  * @returns {Promise<number>} nombre de visuels prêts pour cette arène
  */
 export function loadArena(id) {
+  if (!PAINTED_ARENAS.includes(id)) return Promise.resolve(0);
   return Promise.all(ARENA_PARTS.map(part => loadOne(arenaArt(part, id)))).then(r => r.filter(Boolean).length);
 }
 
