@@ -54,7 +54,7 @@ async function tapOn(page, sel, holdMs = 0) {
 /** Diagnostic d'un échec : fenêtre qui a le focus et dernières lignes utiles du journal. @param {string} what */
 async function diag(what) {
   const focus = (await sh('dumpsys window | grep -E "mCurrentFocus|mFocusedApp" | head -2')).trim().replace(/\s+/g, ' ');
-  const log = (await sh('logcat -d -v time')).split('\n').filter(l => /KEVBLAST|Capacitor\/AppPlugin|Firing change|backButton|ANR|not responding|InputDispatcher.*(drop|Drop|focus)/i.test(l)).slice(-12);
+  const log = (await sh('logcat -d -v time')).split('\n').filter(l => /KEVBLAST|Capacitor\/AppPlugin|Capacitor\/Console|Firing change|backButton|ANR in|not responding|AndroidRuntime|ActivityTaskManager.*(kevblast|finish)|kevblast.*(died|Kill)|InputDispatcher.*(drop|focus)/i.test(l)).slice(-25);
   console.log(`      ${what}\n      focus : ${focus}\n${log.map(l => '      | ' + l.trim()).join('\n')}`);
 }
 
@@ -175,6 +175,7 @@ try {
 } catch (e) {
   check(false, `parcours interrompu : ${e instanceof Error ? e.message : e}`);
   await shot('erreur').catch(() => {});
+  await diag('après l\'interruption').catch(() => {});
 } finally {
   await device.close();
 }
